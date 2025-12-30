@@ -90,8 +90,8 @@ export default function PickupBoard() {
                           snapshot.isDraggingOver && "bg-kanban-drop-zone"
                         )}
                       >
-                        {/* Mobile: Single column, Desktop: 2 columns */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
+                        {/* Cards grid: keep 1-up until large screens to avoid squeezed cards */}
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2 md:gap-3">
                           {columnOrders.map((order, index) => (
                             <Draggable key={order.id} draggableId={order.id} index={index}>
                               {(provided, snapshot) => (
