@@ -45,38 +45,58 @@ export default function DispatchControl() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-card">
-        <div>
-          <h1 className="text-2xl font-bold text-foreground">Dispatch Control</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
-            Assign orders to drivers and manage schedules
-          </p>
+      <header className="flex flex-col gap-3 px-4 md:px-6 py-4 border-b border-border bg-card">
+        <div className="flex items-start md:items-center justify-between gap-4">
+          <div>
+            <h1 className="text-xl md:text-2xl font-bold text-foreground">Dispatch Control</h1>
+            <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
+              Assign orders to drivers and manage schedules
+            </p>
+          </div>
+
+          {/* View Toggle - Desktop */}
+          <div className="hidden md:block">
+            <Tabs value={view} onValueChange={(v) => setView(v as DispatchView)}>
+              <TabsList>
+                <TabsTrigger value="assign-driver" className="gap-2">
+                  <Users className="w-4 h-4" />
+                  Assign Driver
+                </TabsTrigger>
+                <TabsTrigger value="driver-schedule" className="gap-2">
+                  <User className="w-4 h-4" />
+                  Driver Schedule
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+          </div>
         </div>
 
-        {/* View Toggle */}
-        <Tabs value={view} onValueChange={(v) => setView(v as DispatchView)}>
-          <TabsList>
-            <TabsTrigger value="assign-driver" className="gap-2">
-              <Users className="w-4 h-4" />
-              Assign Driver
-            </TabsTrigger>
-            <TabsTrigger value="driver-schedule" className="gap-2">
-              <User className="w-4 h-4" />
-              Driver Schedule
-            </TabsTrigger>
-          </TabsList>
-        </Tabs>
+        {/* View Toggle - Mobile */}
+        <div className="md:hidden">
+          <Tabs value={view} onValueChange={(v) => setView(v as DispatchView)}>
+            <TabsList className="w-full">
+              <TabsTrigger value="assign-driver" className="flex-1 gap-1.5 text-xs">
+                <Users className="w-3.5 h-3.5" />
+                Assign Driver
+              </TabsTrigger>
+              <TabsTrigger value="driver-schedule" className="flex-1 gap-1.5 text-xs">
+                <User className="w-3.5 h-3.5" />
+                Driver Schedule
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+        </div>
       </header>
 
       {/* Content */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-auto">
         <DragDropContext onDragEnd={handleDragEnd}>
           {view === "assign-driver" ? (
-            <div className="flex h-full">
+            <div className="flex flex-col md:flex-row h-full">
               {/* Unassigned Orders Sidebar */}
-              <div className="w-80 border-r border-border bg-muted/30 flex flex-col">
-                <div className="p-4 border-b border-border">
-                  <h2 className="font-semibold text-foreground">Unassigned Orders</h2>
+              <div className="md:w-80 border-b md:border-b-0 md:border-r border-border bg-muted/30 flex flex-col">
+                <div className="p-3 md:p-4 border-b border-border">
+                  <h2 className="font-semibold text-foreground text-sm md:text-base">Unassigned Orders</h2>
                   <p className="text-xs text-muted-foreground mt-1">
                     {unassignedOrders.length} orders ready for dispatch
                   </p>
@@ -87,7 +107,7 @@ export default function DispatchControl() {
                       ref={provided.innerRef}
                       {...provided.droppableProps}
                       className={cn(
-                        "flex-1 p-4 overflow-y-auto scrollbar-thin",
+                        "flex-1 p-3 md:p-4 overflow-y-auto scrollbar-thin max-h-[40vh] md:max-h-none",
                         snapshot.isDraggingOver && "bg-kanban-drop-zone"
                       )}
                     >
@@ -108,7 +128,7 @@ export default function DispatchControl() {
                       </div>
                       {provided.placeholder}
                       {unassignedOrders.length === 0 && (
-                        <div className="text-center text-sm text-muted-foreground py-8">
+                        <div className="text-center text-xs md:text-sm text-muted-foreground py-6 md:py-8">
                           No orders awaiting dispatch
                         </div>
                       )}
@@ -118,16 +138,16 @@ export default function DispatchControl() {
               </div>
 
               {/* Driver Columns */}
-              <div className="flex-1 p-6 overflow-x-auto">
-                <div className="flex gap-4 h-full">
+              <div className="flex-1 p-3 md:p-6 overflow-auto">
+                <div className="flex flex-col md:flex-row gap-4 md:h-full">
                   {drivers.map((driver) => (
                     <div
                       key={driver.id}
-                      className="flex flex-col min-w-[280px] w-[280px] bg-kanban-column rounded-xl border border-border/50"
+                      className="flex flex-col md:min-w-[280px] md:w-[280px] bg-kanban-column rounded-xl border border-border/50"
                     >
-                      <div className="flex items-center gap-3 px-4 py-3 border-b border-border/50">
-                        <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center">
-                          <User className="w-4 h-4 text-primary" />
+                      <div className="flex items-center gap-3 px-3 md:px-4 py-2.5 md:py-3 border-b border-border/50">
+                        <div className="w-7 h-7 md:w-8 md:h-8 rounded-full bg-primary/10 flex items-center justify-center">
+                          <User className="w-3.5 h-3.5 md:w-4 md:h-4 text-primary" />
                         </div>
                         <div className="flex-1 min-w-0">
                           <h3 className="font-semibold text-sm text-foreground truncate">
@@ -147,7 +167,7 @@ export default function DispatchControl() {
                             ref={provided.innerRef}
                             {...provided.droppableProps}
                             className={cn(
-                              "flex-1 p-3 overflow-y-auto scrollbar-thin min-h-[200px]",
+                              "flex-1 p-2 md:p-3 overflow-y-auto scrollbar-thin min-h-[120px] md:min-h-[200px]",
                               snapshot.isDraggingOver && "bg-kanban-drop-zone"
                             )}
                           >
@@ -168,7 +188,7 @@ export default function DispatchControl() {
                             </div>
                             {provided.placeholder}
                             {getDriverOrders(driver.id).length === 0 && !snapshot.isDraggingOver && (
-                              <div className="flex items-center justify-center h-24 text-xs text-muted-foreground border-2 border-dashed border-border rounded-lg">
+                              <div className="flex items-center justify-center h-20 md:h-24 text-xs text-muted-foreground border-2 border-dashed border-border rounded-lg">
                                 Drag orders here
                               </div>
                             )}
@@ -183,9 +203,9 @@ export default function DispatchControl() {
           ) : (
             <div className="flex flex-col h-full">
               {/* Filters */}
-              <div className="flex items-center gap-4 px-6 py-3 border-b border-border bg-muted/30">
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-4 px-3 md:px-6 py-3 border-b border-border bg-muted/30">
                 <Select value={selectedRSM} onValueChange={setSelectedRSM}>
-                  <SelectTrigger className="w-40">
+                  <SelectTrigger className="w-full sm:w-40">
                     <SelectValue placeholder="Filter by RSM" />
                   </SelectTrigger>
                   <SelectContent>
@@ -195,7 +215,7 @@ export default function DispatchControl() {
                   </SelectContent>
                 </Select>
                 <Select value={selectedDriver} onValueChange={setSelectedDriver}>
-                  <SelectTrigger className="w-48">
+                  <SelectTrigger className="w-full sm:w-48">
                     <SelectValue placeholder="Select driver" />
                   </SelectTrigger>
                   <SelectContent>
@@ -209,17 +229,17 @@ export default function DispatchControl() {
               </div>
 
               {/* Week View */}
-              <div className="flex-1 p-6 overflow-x-auto">
-                <div className="flex gap-4 h-full">
+              <div className="flex-1 p-3 md:p-6 overflow-auto">
+                <div className="flex flex-col md:flex-row gap-3 md:gap-4 md:h-full">
                   {days.map((day) => (
                     <div
                       key={day}
                       className={cn(
-                        "flex flex-col min-w-[200px] flex-1 bg-kanban-column rounded-xl border border-border/50",
+                        "flex flex-col md:min-w-[200px] md:flex-1 bg-kanban-column rounded-xl border border-border/50",
                         day === "Unassigned" && "bg-status-unassigned/5 border-status-unassigned/20"
                       )}
                     >
-                      <div className="px-4 py-3 border-b border-border/50">
+                      <div className="px-3 md:px-4 py-2.5 md:py-3 border-b border-border/50">
                         <h3 className="font-semibold text-sm text-foreground">{day}</h3>
                       </div>
                       <Droppable droppableId={day}>
@@ -228,7 +248,7 @@ export default function DispatchControl() {
                             ref={provided.innerRef}
                             {...provided.droppableProps}
                             className={cn(
-                              "flex-1 p-2 overflow-y-auto scrollbar-thin min-h-[200px]",
+                              "flex-1 p-2 overflow-y-auto scrollbar-thin min-h-[100px] md:min-h-[200px]",
                               snapshot.isDraggingOver && "bg-kanban-drop-zone"
                             )}
                           >
