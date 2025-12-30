@@ -41,36 +41,37 @@ export default function PickupBoard() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-card">
+      <header className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 px-4 md:px-6 py-4 border-b border-border bg-card">
         <div>
-          <h1 className="text-2xl font-bold text-foreground">Pickup @ Store</h1>
-          <p className="text-sm text-muted-foreground mt-0.5">
+          <h1 className="text-xl md:text-2xl font-bold text-foreground">Pickup @ Store</h1>
+          <p className="text-xs md:text-sm text-muted-foreground mt-0.5">
             Manage customer pickup orders
           </p>
         </div>
-        <div className="flex items-center gap-2 px-4 py-2 bg-status-pickup/10 rounded-lg">
+        <div className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-status-pickup/10 rounded-lg">
           <Store className="w-4 h-4 text-status-pickup" />
-          <span className="text-sm font-medium text-status-pickup">
+          <span className="text-xs md:text-sm font-medium text-status-pickup">
             {pickupOrders.length} pickup orders
           </span>
         </div>
       </header>
 
       {/* Board */}
-      <div className="flex-1 p-6 overflow-x-auto">
+      <div className="flex-1 p-3 md:p-6 overflow-auto">
         <DragDropContext onDragEnd={handleDragEnd}>
-          <div className="grid grid-cols-3 gap-6 h-full min-h-0">
+          {/* Mobile: Vertical stack, Desktop: Horizontal grid */}
+          <div className="flex flex-col md:grid md:grid-cols-3 gap-4 md:gap-6 md:h-full md:min-h-0">
             {columns.map((column) => {
               const columnOrders = getOrdersForColumn(column.id);
               return (
                 <div
                   key={column.id}
                   className={cn(
-                    "flex flex-col bg-kanban-column rounded-xl border border-border/50",
+                    "flex flex-col bg-kanban-column rounded-xl border border-border/50 min-h-[200px] md:min-h-0",
                     column.id === "not-picked-up" && "bg-destructive/5 border-destructive/20"
                   )}
                 >
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-border/50">
+                  <div className="flex items-center justify-between px-3 md:px-4 py-2.5 md:py-3 border-b border-border/50">
                     <div className="flex items-center gap-2">
                       <column.icon className="w-4 h-4 text-muted-foreground" />
                       <h3 className="font-semibold text-sm text-foreground">{column.title}</h3>
@@ -85,11 +86,12 @@ export default function PickupBoard() {
                         ref={provided.innerRef}
                         {...provided.droppableProps}
                         className={cn(
-                          "flex-1 p-3 overflow-y-auto scrollbar-thin",
+                          "flex-1 p-2 md:p-3 overflow-y-auto scrollbar-thin",
                           snapshot.isDraggingOver && "bg-kanban-drop-zone"
                         )}
                       >
-                        <div className="grid grid-cols-2 gap-3">
+                        {/* Mobile: Single column, Desktop: 2 columns */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-2 md:gap-3">
                           {columnOrders.map((order, index) => (
                             <Draggable key={order.id} draggableId={order.id} index={index}>
                               {(provided, snapshot) => (
@@ -106,7 +108,7 @@ export default function PickupBoard() {
                         </div>
                         {provided.placeholder}
                         {columnOrders.length === 0 && !snapshot.isDraggingOver && (
-                          <div className="flex items-center justify-center h-32 text-sm text-muted-foreground border-2 border-dashed border-border rounded-lg">
+                          <div className="flex items-center justify-center h-24 md:h-32 text-xs md:text-sm text-muted-foreground border-2 border-dashed border-border rounded-lg">
                             No orders
                           </div>
                         )}
