@@ -1,7 +1,6 @@
-import { MapContainer, TileLayer, Marker, Popup, useMap } from "react-leaflet";
-import { Icon, LatLngBounds } from "leaflet";
+import { useEffect, useRef } from "react";
+import L from "leaflet";
 import { Order } from "@/types/order";
-import { useEffect, useMemo } from "react";
 import "leaflet/dist/leaflet.css";
 
 interface OrderMapProps {
@@ -10,89 +9,107 @@ interface OrderMapProps {
   onSelectOrder: (id: string) => void;
 }
 
-// Custom marker icons based on order type
-const createMarkerIcon = (color: string) =>
-  new Icon({
-    iconUrl: `data:image/svg+xml,${encodeURIComponent(`
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="${color}" width="32" height="32">
-        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
-      </svg>
-    `)}`,
-    iconSize: [32, 32],
-    iconAnchor: [16, 32],
-    popupAnchor: [0, -32],
-  });
-
 const orderTypeColors: Record<string, string> = {
-  DODD: "%23f97316",     // Orange (primary)
-  JOBBER: "%2310b981",   // Emerald (accent)
-  HOTSHOT: "%23ef4444",  // Red (destructive)
-  PICKUP: "%238b5cf6",   // Violet (pickup)
-  RESTOCK: "%233b82f6",  // Blue
+  DODD: "#f97316",     // Orange (primary)
+  JOBBER: "#10b981",   // Emerald (accent)
+  HOTSHOT: "#ef4444",  // Red (destructive)
+  PICKUP: "#8b5cf6",   // Violet (pickup)
+  RESTOCK: "#3b82f6",  // Blue
 };
 
-// Component to fit map bounds to markers
-function FitBounds({ orders }: { orders: Order[] }) {
-  const map = useMap();
-
-  useEffect(() => {
-    const ordersWithCoords = orders.filter((o) => o.customer.coordinates);
-    if (ordersWithCoords.length === 0) return;
-
-    const bounds = new LatLngBounds(
-      ordersWithCoords.map((o) => [
-        o.customer.coordinates!.lat,
-        o.customer.coordinates!.lng,
-      ])
-    );
-    map.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
-  }, [orders, map]);
-
-  return null;
-}
+// Create custom marker icon
+const createMarkerIcon = (color: string) =>
+  L.divIcon({
+    className: "custom-marker",
+    html: `<div style="
+      width: 24px;
+      height: 24px;
+      background-color: ${color};
+      border: 2px solid white;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    "></div>`,
+    iconSize: [24, 24],
+    iconAnchor: [12, 12],
+  });
 
 export function OrderMap({ orders, selectedOrder, onSelectOrder }: OrderMapProps) {
-  // Filter orders with coordinates
-  const ordersWithCoords = useMemo(
-    () => orders.filter((o) => o.customer.coordinates),
-    [orders]
-  );
+  const mapRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const markersRef = useRef<L.Marker[]>([]);
 
-  // Default center (Dallas, TX area based on sample addresses)
-  const defaultCenter: [number, number] = [32.9, -96.8];
+  // Filter orders with coordinates
+  const ordersWithCoords = orders.filter((o) => o.customer.coordinates);
+
+  // Initialize map
+  useEffect(() => {
+    if (!mapRef.current || mapInstanceRef.current) return;
+
+    // Default center (Dallas, TX area)
+    const defaultCenter: L.LatLngExpression = [32.9, -96.8];
+
+    mapInstanceRef.current = L.map(mapRef.current, {
+      center: defaultCenter,
+      zoom: 10,
+    });
+
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    }).addTo(mapInstanceRef.current);
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, []);
+
+  // Update markers when orders change
+  useEffect(() => {
+    if (!mapInstanceRef.current) return;
+
+    // Clear existing markers
+    markersRef.current.forEach((marker) => marker.remove());
+    markersRef.current = [];
+
+    // Add new markers
+    ordersWithCoords.forEach((order) => {
+      const color = orderTypeColors[order.orderType] || "#6b7280";
+      const marker = L.marker(
+        [order.customer.coordinates!.lat, order.customer.coordinates!.lng],
+        { icon: createMarkerIcon(color) }
+      )
+        .addTo(mapInstanceRef.current!)
+        .bindPopup(`
+          <div style="font-size: 14px;">
+            <strong>${order.customer.name}</strong><br/>
+            <span style="color: #666;">${order.orderType}</span><br/>
+            <small>${order.customer.address}</small>
+          </div>
+        `)
+        .on("click", () => onSelectOrder(order.id));
+
+      markersRef.current.push(marker);
+    });
+
+    // Fit bounds if we have markers
+    if (ordersWithCoords.length > 0) {
+      const bounds = L.latLngBounds(
+        ordersWithCoords.map((o) => [
+          o.customer.coordinates!.lat,
+          o.customer.coordinates!.lng,
+        ])
+      );
+      mapInstanceRef.current.fitBounds(bounds, { padding: [50, 50], maxZoom: 12 });
+    }
+  }, [ordersWithCoords, onSelectOrder]);
 
   return (
-    <MapContainer
-      center={defaultCenter}
-      zoom={10}
-      className="w-full h-full z-0"
+    <div
+      ref={mapRef}
+      className="w-full h-full"
       style={{ background: "hsl(var(--muted))" }}
-    >
-      <TileLayer
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
-        url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-      />
-
-      <FitBounds orders={ordersWithCoords} />
-
-      {ordersWithCoords.map((order) => (
-        <Marker
-          key={order.id}
-          position={[order.customer.coordinates!.lat, order.customer.coordinates!.lng]}
-          icon={createMarkerIcon(orderTypeColors[order.orderType] || "%236b7280")}
-          eventHandlers={{
-            click: () => onSelectOrder(order.id),
-          }}
-        >
-          <Popup>
-            <div className="text-sm">
-              <p className="font-semibold">{order.customer.name}</p>
-              <p className="text-muted-foreground">{order.orderType}</p>
-              <p className="text-xs mt-1">{order.customer.address}</p>
-            </div>
-          </Popup>
-        </Marker>
-      ))}
-    </MapContainer>
+    />
   );
 }
