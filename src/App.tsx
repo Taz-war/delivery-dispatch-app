@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AppLayout } from "./components/layout/AppLayout";
+import { DataProvider } from "./components/providers/DataProvider";
 import Dashboard from "./pages/Dashboard";
 import OrderEntry from "./pages/OrderEntry";
 import PickingBoard from "./pages/PickingBoard";
@@ -25,22 +26,24 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route element={<AppLayout />}>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/order-entry" element={<OrderEntry />} />
-            <Route path="/picking" element={<PickingBoard />} />
-            <Route path="/dispatch" element={<DispatchControl />} />
-            <Route path="/pickup" element={<PickupBoard />} />
-            <Route path="/map" element={<LiveMap />} />
-            <Route path="/fleet" element={<Fleet />} />
-            <Route path="/customers" element={<Customers />} />
-            <Route path="/invoices" element={<Invoices />} />
-            <Route path="/reports" element={<Reports />} />
-            <Route path="/settings" element={<Settings />} />
-          </Route>
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+        <DataProvider>
+          <Routes>
+            <Route element={<AppLayout />}>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/order-entry" element={<OrderEntry />} />
+              <Route path="/picking" element={<PickingBoard />} />
+              <Route path="/dispatch" element={<DispatchControl />} />
+              <Route path="/pickup" element={<PickupBoard />} />
+              <Route path="/map" element={<LiveMap />} />
+              <Route path="/fleet" element={<Fleet />} />
+              <Route path="/customers" element={<Customers />} />
+              <Route path="/invoices" element={<Invoices />} />
+              <Route path="/reports" element={<Reports />} />
+              <Route path="/settings" element={<Settings />} />
+            </Route>
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </DataProvider>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

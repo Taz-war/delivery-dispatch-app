@@ -224,8 +224,7 @@ export default function Dashboard() {
                       order.orderType === "DODD" && "bg-primary/10 text-primary",
                       order.orderType === "JOBBER" && "bg-accent/10 text-accent",
                       order.orderType === "HOTSHOT" && "bg-destructive/10 text-destructive",
-                      order.orderType === "PICKUP" && "bg-status-pickup/10 text-status-pickup",
-                      order.orderType === "RESTOCK" && "bg-muted text-muted-foreground"
+                      order.orderType === "PICKUP" && "bg-status-pickup/10 text-status-pickup"
                     )}
                   >
                     {order.orderType}

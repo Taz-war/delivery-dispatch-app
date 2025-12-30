@@ -14,7 +14,119 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      drivers: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+          phone: string | null
+          updated_at: string
+          vehicle_type: Database["public"]["Enums"]["vehicle_type"]
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name: string
+          phone?: string | null
+          updated_at?: string
+          vehicle_type?: Database["public"]["Enums"]["vehicle_type"]
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          name?: string
+          phone?: string | null
+          updated_at?: string
+          vehicle_type?: Database["public"]["Enums"]["vehicle_type"]
+        }
+        Relationships: []
+      }
+      orders: {
+        Row: {
+          assigned_day: Database["public"]["Enums"]["assigned_day"] | null
+          assigned_driver_id: string | null
+          comments: string | null
+          created_at: string
+          customer_address: string | null
+          customer_id: string | null
+          customer_lat: number | null
+          customer_lng: number | null
+          customer_name: string
+          customer_phone: string | null
+          id: string
+          invoice_photo_url: string | null
+          items: Json
+          order_document_url: string | null
+          order_number: string
+          order_type: Database["public"]["Enums"]["order_type"]
+          picking_column: Database["public"]["Enums"]["picking_column"]
+          presell_number: string | null
+          rsm: string | null
+          scheduled_date: string | null
+          stage: Database["public"]["Enums"]["order_stage"]
+          updated_at: string
+        }
+        Insert: {
+          assigned_day?: Database["public"]["Enums"]["assigned_day"] | null
+          assigned_driver_id?: string | null
+          comments?: string | null
+          created_at?: string
+          customer_address?: string | null
+          customer_id?: string | null
+          customer_lat?: number | null
+          customer_lng?: number | null
+          customer_name: string
+          customer_phone?: string | null
+          id?: string
+          invoice_photo_url?: string | null
+          items?: Json
+          order_document_url?: string | null
+          order_number: string
+          order_type?: Database["public"]["Enums"]["order_type"]
+          picking_column?: Database["public"]["Enums"]["picking_column"]
+          presell_number?: string | null
+          rsm?: string | null
+          scheduled_date?: string | null
+          stage?: Database["public"]["Enums"]["order_stage"]
+          updated_at?: string
+        }
+        Update: {
+          assigned_day?: Database["public"]["Enums"]["assigned_day"] | null
+          assigned_driver_id?: string | null
+          comments?: string | null
+          created_at?: string
+          customer_address?: string | null
+          customer_id?: string | null
+          customer_lat?: number | null
+          customer_lng?: number | null
+          customer_name?: string
+          customer_phone?: string | null
+          id?: string
+          invoice_photo_url?: string | null
+          items?: Json
+          order_document_url?: string | null
+          order_number?: string
+          order_type?: Database["public"]["Enums"]["order_type"]
+          picking_column?: Database["public"]["Enums"]["picking_column"]
+          presell_number?: string | null
+          rsm?: string | null
+          scheduled_date?: string | null
+          stage?: Database["public"]["Enums"]["order_stage"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "orders_assigned_driver_id_fkey"
+            columns: ["assigned_driver_id"]
+            isOneToOne: false
+            referencedRelation: "drivers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +135,23 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      assigned_day: "Mon" | "Tue" | "Wed" | "Thu" | "Fri"
+      order_stage:
+        | "picking"
+        | "unassigned_driver"
+        | "assigned_driver"
+        | "pickup_store"
+        | "completed"
+      order_type: "DODD" | "JOBBER" | "HOTSHOT" | "PICKUP"
+      picking_column:
+        | "Unassigned"
+        | "Mon"
+        | "Tue"
+        | "Wed"
+        | "Thu"
+        | "Fri"
+        | "Picked"
+      vehicle_type: "truck" | "van" | "hotshot"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +278,26 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      assigned_day: ["Mon", "Tue", "Wed", "Thu", "Fri"],
+      order_stage: [
+        "picking",
+        "unassigned_driver",
+        "assigned_driver",
+        "pickup_store",
+        "completed",
+      ],
+      order_type: ["DODD", "JOBBER", "HOTSHOT", "PICKUP"],
+      picking_column: [
+        "Unassigned",
+        "Mon",
+        "Tue",
+        "Wed",
+        "Thu",
+        "Fri",
+        "Picked",
+      ],
+      vehicle_type: ["truck", "van", "hotshot"],
+    },
   },
 } as const
