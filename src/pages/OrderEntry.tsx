@@ -1,7 +1,7 @@
 import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useOrderStore } from "@/store/orderStore";
-import { Order, OrderType, LineItem } from "@/types/order";
+import { useCreateOrder } from "@/hooks/useOrders";
+import { OrderType, LineItem } from "@/types/order";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,19 +14,18 @@ import { format } from "date-fns";
 import { CalendarIcon, Plus, Trash2, Save, ArrowLeft, Upload, FileText, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
-const orderTypes: OrderType[] = ["DODD", "JOBBER", "HOTSHOT", "PICKUP", "RESTOCK"];
+const orderTypes: OrderType[] = ["DODD", "JOBBER", "HOTSHOT", "PICKUP"];
 
 const orderTypeDescriptions: Record<OrderType, string> = {
   DODD: "Daily Overnight Delivery",
   JOBBER: "Jobber Account",
   HOTSHOT: "Urgent Priority",
   PICKUP: "Customer Pickup",
-  RESTOCK: "Inventory Restock",
 };
 
 export default function OrderEntry() {
   const navigate = useNavigate();
-  const { addOrder } = useOrderStore();
+  const createOrder = useCreateOrder();
 
   const [formData, setFormData] = useState({
     customerName: "",
@@ -101,41 +100,46 @@ export default function OrderEntry() {
     setLineItems(updated);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    const newOrder: Order = {
-      id: `ORD-${Date.now().toString(36).toUpperCase()}`,
-      customer: {
-        name: formData.customerName,
-        id: formData.customerId,
-        address: formData.address,
-        phone: formData.phone,
-        coordinates: { lat: 32.7767, lng: -96.797 }, // Default coords
-      },
-      items: lineItems.filter((item) => item.partNumber.trim() !== ""),
-      stage: formData.orderType === "PICKUP" ? "pickup_store" : "picking",
-      scheduledDate: formData.scheduledDate || null,
-      assignedDay: null,
-      rsm: "Kyle",
-      assignedDriverId: null,
-      orderType: formData.orderType,
-      invoicePhotoUrl: null,
-      comments: formData.comments,
-      createdAt: new Date(),
-      pickingColumn: "Unassigned",
-      orderDocumentUrl: orderDocument?.url || null,
-      presellNumber: formData.orderType === "JOBBER" ? formData.presellNumber : null,
-    };
+    try {
+      const newOrder = await createOrder.mutateAsync({
+        customer: {
+          name: formData.customerName,
+          id: formData.customerId,
+          address: formData.address,
+          phone: formData.phone,
+          coordinates: { lat: 32.7767, lng: -96.797 }, // Default coords
+        },
+        items: lineItems.filter((item) => item.partNumber.trim() !== ""),
+        stage: formData.orderType === "PICKUP" ? "pickup_store" : "picking",
+        scheduledDate: formData.scheduledDate || null,
+        assignedDay: null,
+        rsm: "Kyle",
+        assignedDriverId: null,
+        orderType: formData.orderType,
+        invoicePhotoUrl: null,
+        comments: formData.comments,
+        pickingColumn: "Unassigned",
+        orderDocumentUrl: orderDocument?.url || null,
+        presellNumber: formData.orderType === "JOBBER" ? formData.presellNumber : null,
+      });
+      
+      toast({
+        title: "Order Created",
+        description: `Order has been saved to the ${formData.orderType === "PICKUP" ? "Pickup" : "Picking"} Board.`,
+      });
 
-    addOrder(newOrder);
-    
-    toast({
-      title: "Order Created",
-      description: `Order ${newOrder.id} has been added to the ${formData.orderType === "PICKUP" ? "Pickup" : "Picking"} Board.`,
-    });
-
-    navigate(formData.orderType === "PICKUP" ? "/pickup" : "/picking");
+      navigate(formData.orderType === "PICKUP" ? "/pickup" : "/picking");
+    } catch (error) {
+      console.error("Error creating order:", error);
+      toast({
+        title: "Error",
+        description: "Failed to create order. Please try again.",
+        variant: "destructive",
+      });
+    }
   };
 
   return (
@@ -295,8 +299,6 @@ export default function OrderEntry() {
                         ? "border-accent bg-accent/5"
                         : type === "HOTSHOT"
                         ? "border-destructive bg-destructive/5"
-                        : type === "RESTOCK"
-                        ? "border-blue-500 bg-blue-500/5"
                         : "border-status-pickup bg-status-pickup/5"
                       : "border-border hover:border-muted-foreground/30"
                   )}

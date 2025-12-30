@@ -1,6 +1,7 @@
 import { DragDropContext, DropResult } from "@hello-pangea/dnd";
 import { KanbanColumn } from "@/components/kanban/KanbanColumn";
 import { useOrderStore } from "@/store/orderStore";
+import { useMoveOrderToColumn } from "@/hooks/useOrders";
 import { PickingColumn } from "@/types/order";
 import { ChevronLeft, ChevronRight, Calendar } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -10,6 +11,7 @@ const columns: PickingColumn[] = ["Unassigned", "Mon", "Tue", "Wed", "Thu", "Fri
 
 export default function PickingBoard() {
   const { orders, moveOrderToColumn } = useOrderStore();
+  const moveOrderMutation = useMoveOrderToColumn();
   const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
 
   // Filter orders that are in picking stage
@@ -23,7 +25,12 @@ export default function PickingBoard() {
     if (!destination) return;
 
     const newColumn = destination.droppableId as PickingColumn;
+    
+    // Optimistic update in local store
     moveOrderToColumn(draggableId, newColumn);
+    
+    // Persist to Supabase
+    moveOrderMutation.mutate({ orderId: draggableId, newColumn });
   };
 
   const getOrdersForColumn = (column: PickingColumn) =>

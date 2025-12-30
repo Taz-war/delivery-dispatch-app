@@ -5,7 +5,7 @@ export type OrderStage =
   | "pickup_store" 
   | "completed";
 
-export type OrderType = "DODD" | "JOBBER" | "HOTSHOT" | "PICKUP" | "RESTOCK";
+export type OrderType = "DODD" | "JOBBER" | "HOTSHOT" | "PICKUP";
 
 export type AssignedDay = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | null;
 
