@@ -1,10 +1,11 @@
 import { useOrderStore } from "@/store/orderStore";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { MapPin, Package, Phone, Map as MapIcon, Calendar, List } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
+import { OrderMap } from "@/components/map/OrderMap";
 
 type ViewMode = "week" | "calendar" | "map";
 
@@ -171,67 +172,17 @@ export default function LiveMap() {
         </div>
 
         {/* Map Area */}
-        <div className="flex-1 relative bg-muted min-h-[300px] md:min-h-0">
-          {/* Placeholder Map */}
-          <div className="absolute inset-0 bg-gradient-to-br from-muted to-muted/50">
-            <svg className="w-full h-full opacity-10" viewBox="0 0 100 100">
-              <path
-                d="M10,50 Q30,20 50,50 T90,50"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="0.5"
-              />
-              <path
-                d="M10,70 Q50,40 90,70"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="0.5"
-              />
-            </svg>
-          </div>
+        <div className="flex-1 relative min-h-[300px] md:min-h-0">
+          <OrderMap
+            orders={activeOrders}
+            selectedOrder={selectedOrder}
+            onSelectOrder={setSelectedOrder}
+          />
 
-          {/* Order Pins */}
-          <div className="absolute inset-0 p-4 md:p-8">
-            <div className="relative w-full h-full">
-              {activeOrders.map((order, index) => {
-                // Distribute pins across the map area for demo
-                const x = 20 + (index % 4) * 20 + Math.random() * 10;
-                const y = 20 + Math.floor(index / 4) * 25 + Math.random() * 10;
-
-                return (
-                  <button
-                    key={order.id}
-                    onClick={() => setSelectedOrder(order.id)}
-                    className={cn(
-                      "absolute transform -translate-x-1/2 -translate-y-full transition-all duration-200 hover:scale-110 z-10",
-                      selectedOrder === order.id && "scale-125 z-20"
-                    )}
-                    style={{ left: `${x}%`, top: `${y}%` }}
-                  >
-                    <div
-                      className={cn(
-                        "w-7 h-7 md:w-8 md:h-8 rounded-full flex items-center justify-center shadow-lg",
-                        order.orderType === "DODD" && "bg-primary text-primary-foreground",
-                        order.orderType === "JOBBER" && "bg-accent text-accent-foreground",
-                        order.orderType === "HOTSHOT" && "bg-destructive text-destructive-foreground",
-                        order.orderType === "PICKUP" && "bg-status-pickup text-white"
-                      )}
-                    >
-                      <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4" />
-                    </div>
-                    <div className="absolute left-1/2 -translate-x-1/2 mt-1 px-1.5 md:px-2 py-0.5 bg-card rounded text-[10px] md:text-xs font-medium shadow whitespace-nowrap">
-                      {order.customer.name.slice(0, 12)}...
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Map placeholder text */}
-          <div className="absolute bottom-3 right-3 md:bottom-4 md:right-4 px-2 md:px-3 py-1.5 md:py-2 bg-card/80 backdrop-blur rounded-lg shadow">
+          {/* Map info overlay */}
+          <div className="absolute bottom-3 right-3 md:bottom-4 md:right-4 px-2 md:px-3 py-1.5 md:py-2 bg-card/80 backdrop-blur rounded-lg shadow z-[1000]">
             <p className="text-[10px] md:text-xs text-muted-foreground">
-              Map visualization • {activeOrders.length} active orders
+              {activeOrders.length} active orders
             </p>
           </div>
         </div>
