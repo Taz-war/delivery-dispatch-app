@@ -25,7 +25,9 @@ const mockOrders: Order[] = [
     invoicePhotoUrl: null,
     comments: "Urgent - customer waiting",
     createdAt: new Date(),
-    pickingColumn: "Unassigned"
+    pickingColumn: "Unassigned",
+    orderDocumentUrl: null,
+    presellNumber: null
   },
   {
     id: "ORD-002",
@@ -48,7 +50,9 @@ const mockOrders: Order[] = [
     invoicePhotoUrl: null,
     comments: "",
     createdAt: new Date(),
-    pickingColumn: "Mon"
+    pickingColumn: "Mon",
+    orderDocumentUrl: null,
+    presellNumber: "PS-44521"
   },
   {
     id: "ORD-003",
@@ -72,7 +76,9 @@ const mockOrders: Order[] = [
     invoicePhotoUrl: null,
     comments: "Call before delivery",
     createdAt: new Date(),
-    pickingColumn: "Tue"
+    pickingColumn: "Tue",
+    orderDocumentUrl: null,
+    presellNumber: null
   },
   {
     id: "ORD-004",
@@ -95,7 +101,9 @@ const mockOrders: Order[] = [
     invoicePhotoUrl: null,
     comments: "",
     createdAt: new Date(),
-    pickingColumn: "Unassigned"
+    pickingColumn: "Unassigned",
+    orderDocumentUrl: null,
+    presellNumber: null
   },
   {
     id: "ORD-005",
@@ -118,7 +126,9 @@ const mockOrders: Order[] = [
     invoicePhotoUrl: null,
     comments: "",
     createdAt: new Date(),
-    pickingColumn: "Picked"
+    pickingColumn: "Picked",
+    orderDocumentUrl: null,
+    presellNumber: null
   }
 ];
 

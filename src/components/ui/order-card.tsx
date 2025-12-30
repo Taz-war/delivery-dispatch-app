@@ -1,17 +1,18 @@
 import { Order } from "@/types/order";
 import { cn } from "@/lib/utils";
-import { Package, MapPin, Phone, Clock } from "lucide-react";
+import { Package, MapPin, Clock, FileText, Tag } from "lucide-react";
 
 interface OrderCardProps {
   order: Order;
   isDragging?: boolean;
 }
 
-const orderTypeStyles = {
+const orderTypeStyles: Record<string, string> = {
   DODD: "bg-primary/10 text-primary border-primary/20",
   JOBBER: "bg-accent/10 text-accent border-accent/20",
   HOTSHOT: "bg-destructive/10 text-destructive border-destructive/20",
   PICKUP: "bg-status-pickup/10 text-status-pickup border-status-pickup/20",
+  RESTOCK: "bg-blue-500/10 text-blue-600 border-blue-500/20",
 };
 
 export function OrderCard({ order, isDragging }: OrderCardProps) {
@@ -58,15 +59,30 @@ export function OrderCard({ order, isDragging }: OrderCardProps) {
         </p>
       </div>
 
+      {/* PRE SELL Badge for JOBBER orders */}
+      {order.orderType === "JOBBER" && order.presellNumber && (
+        <div className="flex items-center gap-1.5 mb-2 p-1.5 bg-accent/10 rounded border border-accent/20">
+          <Tag className="w-3.5 h-3.5 text-accent flex-shrink-0" />
+          <span className="text-xs font-medium text-accent">
+            PRE SELL: {order.presellNumber}
+          </span>
+        </div>
+      )}
+
       {/* Footer */}
       <div className="flex items-center justify-between pt-2 border-t border-border/50">
         <div className="flex items-center gap-1 text-xs text-muted-foreground">
           <Clock className="w-3 h-3" />
           <span>{new Date(order.createdAt).toLocaleDateString()}</span>
         </div>
-        {order.comments && (
-          <div className="w-2 h-2 rounded-full bg-accent animate-pulse-subtle" title="Has comments" />
-        )}
+        <div className="flex items-center gap-1.5">
+          {order.orderDocumentUrl && (
+            <FileText className="w-3.5 h-3.5 text-accent" />
+          )}
+          {order.comments && (
+            <div className="w-2 h-2 rounded-full bg-accent animate-pulse-subtle" title="Has comments" />
+          )}
+        </div>
       </div>
     </div>
   );

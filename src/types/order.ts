@@ -5,7 +5,7 @@ export type OrderStage =
   | "pickup_store" 
   | "completed";
 
-export type OrderType = "DODD" | "JOBBER" | "HOTSHOT" | "PICKUP";
+export type OrderType = "DODD" | "JOBBER" | "HOTSHOT" | "PICKUP" | "RESTOCK";
 
 export type AssignedDay = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | null;
 
@@ -44,6 +44,9 @@ export interface Order {
   comments: string;
   createdAt: Date;
   pickingColumn: PickingColumn;
+  // New fields
+  orderDocumentUrl: string | null; // Image/PDF of the order for driver reference
+  presellNumber: string | null; // PRE SELL number for JOBBER orders only
 }
 
 export interface Driver {

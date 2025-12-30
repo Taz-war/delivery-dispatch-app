@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useOrderStore } from "@/store/orderStore";
 import { Order, OrderType, LineItem } from "@/types/order";
@@ -11,16 +11,17 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { format } from "date-fns";
-import { CalendarIcon, Plus, Trash2, Save, ArrowLeft } from "lucide-react";
+import { CalendarIcon, Plus, Trash2, Save, ArrowLeft, Upload, FileText, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 
-const orderTypes: OrderType[] = ["DODD", "JOBBER", "HOTSHOT", "PICKUP"];
+const orderTypes: OrderType[] = ["DODD", "JOBBER", "HOTSHOT", "PICKUP", "RESTOCK"];
 
 const orderTypeDescriptions: Record<OrderType, string> = {
   DODD: "Daily Overnight Delivery",
   JOBBER: "Jobber Account",
   HOTSHOT: "Urgent Priority",
   PICKUP: "Customer Pickup",
+  RESTOCK: "Inventory Restock",
 };
 
 export default function OrderEntry() {
@@ -36,11 +37,53 @@ export default function OrderEntry() {
     orderType: "DODD" as OrderType,
     comments: "",
     scheduledDate: undefined as Date | undefined,
+    presellNumber: "",
   });
 
   const [lineItems, setLineItems] = useState<LineItem[]>([
     { partNumber: "", quantity: 1, poNumber: "" },
   ]);
+
+  const [orderDocument, setOrderDocument] = useState<{ name: string; url: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      // Check file type
+      const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf'];
+      if (!validTypes.includes(file.type)) {
+        toast({
+          title: "Invalid file type",
+          description: "Please upload an image (JPG, PNG, GIF, WEBP) or PDF file.",
+          variant: "destructive",
+        });
+        return;
+      }
+      // Check file size (max 10MB)
+      if (file.size > 10 * 1024 * 1024) {
+        toast({
+          title: "File too large",
+          description: "Please upload a file smaller than 10MB.",
+          variant: "destructive",
+        });
+        return;
+      }
+      // Create a local URL for preview (in production, this would upload to storage)
+      const url = URL.createObjectURL(file);
+      setOrderDocument({ name: file.name, url });
+    }
+  };
+
+  const removeDocument = () => {
+    if (orderDocument?.url) {
+      URL.revokeObjectURL(orderDocument.url);
+    }
+    setOrderDocument(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
 
   const addLineItem = () => {
     setLineItems([...lineItems, { partNumber: "", quantity: 1, poNumber: "" }]);
@@ -81,6 +124,8 @@ export default function OrderEntry() {
       comments: formData.comments,
       createdAt: new Date(),
       pickingColumn: "Unassigned",
+      orderDocumentUrl: orderDocument?.url || null,
+      presellNumber: formData.orderType === "JOBBER" ? formData.presellNumber : null,
     };
 
     addOrder(newOrder);
@@ -234,13 +279,13 @@ export default function OrderEntry() {
           <CardHeader>
             <CardTitle className="text-lg">Order Type</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-2 md:grid-cols-5 gap-3">
               {orderTypes.map((type) => (
                 <button
                   key={type}
                   type="button"
-                  onClick={() => setFormData({ ...formData, orderType: type })}
+                  onClick={() => setFormData({ ...formData, orderType: type, presellNumber: type !== "JOBBER" ? "" : formData.presellNumber })}
                   className={cn(
                     "flex flex-col items-center p-4 rounded-lg border-2 transition-all",
                     formData.orderType === type
@@ -250,6 +295,8 @@ export default function OrderEntry() {
                         ? "border-accent bg-accent/5"
                         : type === "HOTSHOT"
                         ? "border-destructive bg-destructive/5"
+                        : type === "RESTOCK"
+                        ? "border-blue-500 bg-blue-500/5"
                         : "border-status-pickup bg-status-pickup/5"
                       : "border-border hover:border-muted-foreground/30"
                   )}
@@ -260,6 +307,81 @@ export default function OrderEntry() {
                   </span>
                 </button>
               ))}
+            </div>
+
+            {/* PRE SELL field - only visible for JOBBER orders */}
+            {formData.orderType === "JOBBER" && (
+              <div className="p-4 bg-accent/5 border border-accent/20 rounded-lg space-y-2">
+                <Label htmlFor="presellNumber" className="text-accent font-medium">
+                  PRE SELL Number
+                </Label>
+                <Input
+                  id="presellNumber"
+                  placeholder="Enter Pre-Sell number"
+                  value={formData.presellNumber}
+                  onChange={(e) => setFormData({ ...formData, presellNumber: e.target.value })}
+                  className="border-accent/30 focus:border-accent"
+                />
+                <p className="text-xs text-muted-foreground">
+                  This number will be visible to drivers on the order card.
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Order Document Upload */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Order Document</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Upload an image or PDF of the order for driver reference.
+              </p>
+              
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*,.pdf"
+                onChange={handleFileUpload}
+                className="hidden"
+                id="orderDocumentUpload"
+              />
+
+              {!orderDocument ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full h-24 border-dashed border-2 hover:border-accent hover:bg-accent/5"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <div className="flex flex-col items-center gap-2">
+                    <Upload className="w-6 h-6 text-muted-foreground" />
+                    <span className="text-sm text-muted-foreground">
+                      Click to upload image or PDF
+                    </span>
+                  </div>
+                </Button>
+              ) : (
+                <div className="flex items-center gap-3 p-3 bg-muted/30 rounded-lg border">
+                  <FileText className="w-8 h-8 text-accent flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium truncate">{orderDocument.name}</p>
+                    <p className="text-xs text-muted-foreground">Document attached</p>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    onClick={removeDocument}
+                    className="text-muted-foreground hover:text-destructive"
+                  >
+                    <X className="w-4 h-4" />
+                  </Button>
+                </div>
+              )}
             </div>
           </CardContent>
         </Card>
@@ -282,7 +404,7 @@ export default function OrderEntry() {
 
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Delivery Date</CardTitle>
+              <CardTitle className="text-lg">Fulfilment Day</CardTitle>
             </CardHeader>
             <CardContent>
               <Popover>
