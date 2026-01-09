@@ -104,6 +104,9 @@ export default function OrderEntry() {
     e.preventDefault();
 
     try {
+      // Non-pickup orders now default to 'unassigned_driver' stage (bypassing picking)
+      const stage = formData.orderType === "PICKUP" ? "pickup_store" : "unassigned_driver";
+      
       const newOrder = await createOrder.mutateAsync({
         customer: {
           name: formData.customerName,
@@ -113,7 +116,7 @@ export default function OrderEntry() {
           coordinates: { lat: 32.7767, lng: -96.797 }, // Default coords
         },
         items: lineItems.filter((item) => item.partNumber.trim() !== ""),
-        stage: formData.orderType === "PICKUP" ? "pickup_store" : "picking",
+        stage,
         scheduledDate: formData.scheduledDate || null,
         assignedDay: null,
         rsm: "Kyle",
@@ -128,10 +131,10 @@ export default function OrderEntry() {
       
       toast({
         title: "Order Created",
-        description: `Order has been saved to the ${formData.orderType === "PICKUP" ? "Pickup" : "Picking"} Board.`,
+        description: `Order has been saved to ${formData.orderType === "PICKUP" ? "Pickup Board" : "Dispatch Control (Unassigned)"}.`,
       });
 
-      navigate(formData.orderType === "PICKUP" ? "/pickup" : "/picking");
+      navigate(formData.orderType === "PICKUP" ? "/pickup" : "/dispatch");
     } catch (error) {
       console.error("Error creating order:", error);
       toast({

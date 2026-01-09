@@ -14,9 +14,12 @@ export default function PickingBoard() {
   const moveOrderMutation = useMoveOrderToColumn();
   const [currentWeekOffset, setCurrentWeekOffset] = useState(0);
 
-  // Filter orders that are in picking stage
+  // Filter orders that are in picking stage OR unassigned_driver with Unassigned column
+  // This ensures new orders (which now default to unassigned_driver) appear here
   const pickingOrders = orders.filter(
-    (o) => o.stage === "picking" || o.pickingColumn === "Picked"
+    (o) => o.stage === "picking" || 
+           o.pickingColumn === "Picked" ||
+           (o.stage === "unassigned_driver" && o.pickingColumn === "Unassigned")
   );
 
   const handleDragEnd = (result: DropResult) => {
