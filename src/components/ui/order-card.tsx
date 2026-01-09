@@ -5,6 +5,7 @@ import { Package, MapPin, Clock, FileText, Tag } from "lucide-react";
 interface OrderCardProps {
   order: Order;
   isDragging?: boolean;
+  onClick?: () => void;
 }
 
 const orderTypeStyles: Record<string, string> = {
@@ -12,16 +13,17 @@ const orderTypeStyles: Record<string, string> = {
   JOBBER: "bg-accent/10 text-accent border-accent/20",
   HOTSHOT: "bg-destructive/10 text-destructive border-destructive/20",
   PICKUP: "bg-status-pickup/10 text-status-pickup border-status-pickup/20",
-  RESTOCK: "bg-blue-500/10 text-blue-600 border-blue-500/20",
 };
 
-export function OrderCard({ order, isDragging }: OrderCardProps) {
+export function OrderCard({ order, isDragging, onClick }: OrderCardProps) {
   return (
     <div
+      onClick={onClick}
       className={cn(
         "bg-kanban-card border border-border rounded-lg p-3 shadow-card transition-all duration-200",
         isDragging && "shadow-kanban rotate-2 scale-105",
-        !isDragging && "hover:shadow-card-hover hover:border-accent/30"
+        !isDragging && "hover:shadow-card-hover hover:border-accent/30",
+        onClick && "cursor-pointer"
       )}
     >
       {/* Header */}
