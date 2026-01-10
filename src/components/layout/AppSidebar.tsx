@@ -14,6 +14,7 @@ import {
   ChevronLeft,
   ChevronRight,
   LogOut,
+  ListOrdered,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -48,6 +49,7 @@ const navigation: NavGroup[] = [
   {
     title: "Management",
     items: [
+      { title: "Orders", href: "/orders", icon: ListOrdered },
       { title: "Fleet", href: "/fleet", icon: Car },
       { title: "Customers", href: "/customers", icon: Users },
       { title: "Invoices", href: "/invoices", icon: FileText },
