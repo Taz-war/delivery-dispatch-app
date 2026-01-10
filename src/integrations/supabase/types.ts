@@ -22,6 +22,7 @@ export type Database = {
           name: string
           phone: string | null
           updated_at: string
+          user_id: string | null
           vehicle_type: Database["public"]["Enums"]["vehicle_type"]
         }
         Insert: {
@@ -31,6 +32,7 @@ export type Database = {
           name: string
           phone?: string | null
           updated_at?: string
+          user_id?: string | null
           vehicle_type?: Database["public"]["Enums"]["vehicle_type"]
         }
         Update: {
@@ -40,6 +42,7 @@ export type Database = {
           name?: string
           phone?: string | null
           updated_at?: string
+          user_id?: string | null
           vehicle_type?: Database["public"]["Enums"]["vehicle_type"]
         }
         Relationships: []
@@ -109,6 +112,7 @@ export type Database = {
           scheduled_date: string | null
           stage: Database["public"]["Enums"]["order_stage"]
           updated_at: string
+          user_id: string | null
         }
         Insert: {
           assigned_day?: Database["public"]["Enums"]["assigned_day"] | null
@@ -133,6 +137,7 @@ export type Database = {
           scheduled_date?: string | null
           stage?: Database["public"]["Enums"]["order_stage"]
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
           assigned_day?: Database["public"]["Enums"]["assigned_day"] | null
@@ -157,6 +162,7 @@ export type Database = {
           scheduled_date?: string | null
           stage?: Database["public"]["Enums"]["order_stage"]
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: [
           {

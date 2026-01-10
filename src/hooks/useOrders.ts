@@ -78,6 +78,10 @@ export const useCreateOrder = () => {
 
   return useMutation({
     mutationFn: async (order: Omit<Order, "id" | "createdAt">) => {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
       // Generate order number
       const orderNumber = `ORD-${Date.now().toString(36).toUpperCase()}`;
 
@@ -101,6 +105,7 @@ export const useCreateOrder = () => {
         picking_column: order.pickingColumn as TablesInsert<"orders">["picking_column"],
         order_document_url: order.orderDocumentUrl,
         presell_number: order.presellNumber,
+        user_id: user.id,
       };
 
       const { data, error } = await supabase
@@ -236,11 +241,16 @@ export const useCreateDriver = () => {
 
   return useMutation({
     mutationFn: async (driver: Omit<Driver, "id">) => {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error("User not authenticated");
+
       const insertData: TablesInsert<"drivers"> = {
         name: driver.name,
         phone: driver.phone,
         vehicle_type: driver.vehicleType,
         is_active: driver.isActive,
+        user_id: user.id,
       };
 
       const { data, error } = await supabase
