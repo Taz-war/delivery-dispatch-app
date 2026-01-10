@@ -13,6 +13,7 @@ import { cn } from "@/lib/utils";
 import { format } from "date-fns";
 import { CalendarIcon, Plus, Trash2, Save, ArrowLeft, Upload, FileText, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
+import { CustomerSearch } from "@/components/order/CustomerSearch";
 
 const orderTypes: OrderType[] = ["DODD", "JOBBER", "HOTSHOT", "PICKUP"];
 
@@ -167,48 +168,27 @@ export default function OrderEntry() {
             <CardTitle className="text-lg">Customer Information</CardTitle>
           </CardHeader>
           <CardContent className="grid gap-4 md:grid-cols-2">
-            <div className="space-y-2">
-              <Label htmlFor="customerName">Customer Name</Label>
-              <Input
-                id="customerName"
-                placeholder="e.g., AutoZone #4521"
-                value={formData.customerName}
-                onChange={(e) => setFormData({ ...formData, customerName: e.target.value })}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="customerId">ID #</Label>
-              <Input
-                id="customerId"
-                placeholder="e.g., AZ-4521"
-                value={formData.customerId}
-                onChange={(e) => setFormData({ ...formData, customerId: e.target.value })}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="address">Address</Label>
-              <Input
-                id="address"
-                placeholder="Street address, city, state, zip"
-                value={formData.address}
-                onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="phone">Phone #</Label>
-              <Input
-                id="phone"
-                type="tel"
-                placeholder="(555) 555-5555"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+            <div className="md:col-span-2">
+              <CustomerSearch
+                value={{
+                  customerName: formData.customerName,
+                  customerId: formData.customerId,
+                  address: formData.address,
+                  phone: formData.phone,
+                }}
+                onChange={(data) =>
+                  setFormData({
+                    ...formData,
+                    customerName: data.customerName,
+                    customerId: data.customerId,
+                    address: data.address,
+                    phone: data.phone,
+                  })
+                }
               />
             </div>
             <div className="space-y-2 md:col-span-2">
-              <Label htmlFor="deliverTo">Deliver To</Label>
+              <label htmlFor="deliverTo" className="text-sm font-medium">Deliver To</label>
               <Input
                 id="deliverTo"
                 placeholder="Specific delivery instructions or location"
