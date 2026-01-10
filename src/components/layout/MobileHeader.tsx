@@ -15,6 +15,7 @@ import {
   BarChart3,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { UserMenu } from "@/components/auth/UserMenu";
 
 interface NavItem {
   title: string;
@@ -126,11 +127,7 @@ export function MobileHeader() {
         {currentPage?.title || "DispatchPro"}
       </h1>
 
-      <Button variant="ghost" size="icon" className="shrink-0" asChild>
-        <NavLink to="/settings">
-          <Settings className="w-5 h-5" />
-        </NavLink>
-      </Button>
+      <UserMenu />
     </header>
   );
 }
