@@ -1,4 +1,4 @@
-import { NavLink, useLocation } from "react-router-dom";
+import { NavLink, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -13,10 +13,14 @@ import {
   Settings,
   ChevronLeft,
   ChevronRight,
+  LogOut,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { UserMenu } from "@/components/auth/UserMenu";
+import { useAuth } from "@/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { toast } from "sonner";
 
 interface NavItem {
   title: string;
@@ -60,7 +64,27 @@ const navigation: NavGroup[] = [
 
 export function AppSidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const [collapsed, setCollapsed] = useState(false);
+  const { user, signOut } = useAuth();
+
+  const displayName = user?.user_metadata?.display_name || user?.email?.split("@")[0] || "User";
+  const initials = displayName
+    .split(" ")
+    .map((n: string) => n[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 2);
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast.error("Error signing out");
+      return;
+    }
+    toast.success("Signed out successfully");
+    navigate("/auth");
+  };
 
   return (
     <aside
@@ -122,12 +146,42 @@ export function AppSidebar() {
         ))}
       </nav>
 
-      {/* User Menu & Collapse Button */}
+      {/* User Info & Logout */}
       <div className="p-4 border-t border-sidebar-border space-y-3">
-        <div className={cn("flex items-center", collapsed ? "justify-center" : "justify-between")}>
-          {!collapsed && <span className="text-sm text-sidebar-foreground">Account</span>}
-          <UserMenu />
+        {/* User Info */}
+        <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
+          <Avatar className="h-9 w-9 flex-shrink-0">
+            <AvatarFallback className="bg-sidebar-primary/20 text-sidebar-primary text-sm">
+              {initials}
+            </AvatarFallback>
+          </Avatar>
+          {!collapsed && (
+            <div className="flex-1 min-w-0 animate-fade-in">
+              <p className="text-sm font-medium text-sidebar-accent-foreground truncate">
+                {displayName}
+              </p>
+              <p className="text-xs text-sidebar-foreground truncate">
+                {user?.email}
+              </p>
+            </div>
+          )}
         </div>
+
+        {/* Logout Button */}
+        <Button
+          variant="ghost"
+          size={collapsed ? "icon" : "default"}
+          onClick={handleSignOut}
+          className={cn(
+            "w-full text-sidebar-foreground hover:bg-destructive/10 hover:text-destructive transition-colors",
+            collapsed && "h-9 w-9 p-0"
+          )}
+        >
+          <LogOut className={cn("h-4 w-4", !collapsed && "mr-2")} />
+          {!collapsed && <span>Logout</span>}
+        </Button>
+
+        {/* Collapse Button */}
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="flex items-center justify-center w-full py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
