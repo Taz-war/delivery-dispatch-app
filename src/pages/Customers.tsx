@@ -1,18 +1,58 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Users, Search, Plus, MapPin, Phone, History } from "lucide-react";
-
-// Mock customers
-const customers = [
-  { id: "AZ-4521", name: "AutoZone #4521", address: "123 Main Street, Dallas, TX 75201", phone: "(214) 555-0123", orders: 24 },
-  { id: "OR-8832", name: "O'Reilly Auto Parts", address: "456 Commerce Blvd, Fort Worth, TX 76102", phone: "(817) 555-0456", orders: 18 },
-  { id: "PB-112", name: "Pep Boys #112", address: "789 Auto Lane, Arlington, TX 76010", phone: "(682) 555-0789", orders: 31 },
-  { id: "NAPA-3301", name: "NAPA Auto Care", address: "321 Parts Way, Plano, TX 75074", phone: "(972) 555-0321", orders: 12 },
-  { id: "AAP-7745", name: "Advance Auto Parts", address: "555 Mechanic Drive, Irving, TX 75039", phone: "(469) 555-0555", orders: 27 },
-];
+import { Search, Plus, MapPin, Phone, Loader2 } from "lucide-react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function Customers() {
+  const [searchQuery, setSearchQuery] = useState("");
+
+  const { data: customers = [], isLoading } = useQuery({
+    queryKey: ["customers"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("customers")
+        .select("*")
+        .order("name");
+      if (error) throw error;
+      return data;
+    },
+  });
+
+  // Get order counts per customer
+  const { data: orderCounts = {} } = useQuery({
+    queryKey: ["customer-order-counts"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("orders")
+        .select("customer_id");
+      if (error) throw error;
+      
+      const counts: Record<string, number> = {};
+      data.forEach((order) => {
+        if (order.customer_id) {
+          counts[order.customer_id] = (counts[order.customer_id] || 0) + 1;
+        }
+      });
+      return counts;
+    },
+  });
+
+  const filteredCustomers = customers.filter(
+    (customer) =>
+      customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      customer.customer_code.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -32,42 +72,70 @@ export default function Customers() {
       {/* Search */}
       <div className="relative max-w-md">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-        <Input placeholder="Search customers by name or ID..." className="pl-10" />
+        <Input
+          placeholder="Search customers by name or ID..."
+          className="pl-10"
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
       </div>
 
-      {/* Customers Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {customers.map((customer) => (
-          <Card key={customer.id} className="hover:shadow-card-hover transition-shadow cursor-pointer">
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Users className="w-5 h-5 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-base">{customer.name}</CardTitle>
-                    <p className="text-xs text-muted-foreground">#{customer.id}</p>
-                  </div>
-                </div>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <div className="flex items-start gap-2 text-sm text-muted-foreground">
-                <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                <span className="line-clamp-2">{customer.address}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Phone className="w-4 h-4" />
-                <span>{customer.phone}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground pt-2 border-t border-border">
-                <History className="w-4 h-4" />
-                <span>{customer.orders} total orders</span>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+      {/* Customers Table */}
+      <div className="border rounded-lg">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[120px]">Customer ID</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Address</TableHead>
+              <TableHead>Phone</TableHead>
+              <TableHead className="text-right">Total Orders</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {isLoading ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8">
+                  <Loader2 className="w-6 h-6 animate-spin mx-auto text-muted-foreground" />
+                </TableCell>
+              </TableRow>
+            ) : filteredCustomers.length === 0 ? (
+              <TableRow>
+                <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                  {searchQuery ? "No customers found matching your search" : "No customers yet. Add your first customer!"}
+                </TableCell>
+              </TableRow>
+            ) : (
+              filteredCustomers.map((customer) => (
+                <TableRow key={customer.id} className="cursor-pointer hover:bg-muted/50">
+                  <TableCell className="font-mono text-sm">
+                    {customer.customer_code}
+                  </TableCell>
+                  <TableCell className="font-medium">{customer.name}</TableCell>
+                  <TableCell>
+                    {customer.address && (
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <MapPin className="w-3.5 h-3.5 flex-shrink-0" />
+                        <span className="truncate max-w-[300px]">{customer.address}</span>
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell>
+                    {customer.phone && (
+                      <div className="flex items-center gap-1.5 text-muted-foreground">
+                        <Phone className="w-3.5 h-3.5" />
+                        <span>{customer.phone}</span>
+                      </div>
+                    )}
+                  </TableCell>
+                  <TableCell className="text-right">
+                    {orderCounts[customer.customer_code] || 0}
+                  </TableCell>
+                </TableRow>
+              ))
+            )}
+          </TableBody>
+        </Table>
       </div>
     </div>
   );
