@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
+import { UserMenu } from "@/components/auth/UserMenu";
 
 interface NavItem {
   title: string;
@@ -121,8 +122,12 @@ export function AppSidebar() {
         ))}
       </nav>
 
-      {/* Collapse Button */}
-      <div className="p-4 border-t border-sidebar-border">
+      {/* User Menu & Collapse Button */}
+      <div className="p-4 border-t border-sidebar-border space-y-3">
+        <div className={cn("flex items-center", collapsed ? "justify-center" : "justify-between")}>
+          {!collapsed && <span className="text-sm text-sidebar-foreground">Account</span>}
+          <UserMenu />
+        </div>
         <button
           onClick={() => setCollapsed(!collapsed)}
           className="flex items-center justify-center w-full py-2 rounded-lg text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground transition-colors"
