@@ -14,6 +14,7 @@ import PickupBoard from "./pages/PickupBoard";
 import LiveMap from "./pages/LiveMap";
 import Fleet from "./pages/Fleet";
 import Customers from "./pages/Customers";
+import Orders from "./pages/Orders";
 import Invoices from "./pages/Invoices";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
@@ -46,6 +47,7 @@ const App = () => (
             <Route path="/pickup" element={<PickupBoard />} />
             <Route path="/map" element={<LiveMap />} />
             <Route path="/fleet" element={<Fleet />} />
+            <Route path="/orders" element={<Orders />} />
             <Route path="/customers" element={<Customers />} />
             <Route path="/invoices" element={<Invoices />} />
             <Route path="/reports" element={<Reports />} />
