@@ -1,4 +1,6 @@
 import { Order } from "@/types/order";
+import { useOrderStore } from "@/store/orderStore";
+import { useAssignOrderToDriver } from "@/hooks/useOrders";
 import {
   Sheet,
   SheetContent,
@@ -7,18 +9,21 @@ import {
 } from "@/components/ui/sheet";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { OrderTimeline } from "./OrderTimeline";
-import { 
-  Package, 
-  MapPin, 
-  Clock, 
-  FileText, 
-  Tag, 
+import {
+  Package,
+  MapPin,
+  Clock,
+  FileText,
+  Tag,
   User,
-  History
+  History,
+  Truck
 } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 interface OrderDetailSheetProps {
   order: Order | null;
@@ -42,7 +47,41 @@ const stageLabels: Record<string, string> = {
 };
 
 export function OrderDetailSheet({ order, open, onOpenChange }: OrderDetailSheetProps) {
+  const { drivers, assignOrderToDriver } = useOrderStore();
+  const assignOrderMutation = useAssignOrderToDriver();
+
   if (!order) return null;
+
+  const handleDriverAssign = (driverId: string) => {
+    if (!order) return;
+
+    // Optimistic update - this always works locally
+    assignOrderToDriver(order.id, driverId);
+
+    const driver = drivers.find(d => d.id === driverId);
+
+    // Check if this is a local-only driver (starts with 'driver-')
+    if (driverId.startsWith('driver-')) {
+      // Local-only driver - just show success, don't persist to database
+      toast.success(`Order assigned to ${driver?.name || 'driver'} (local)`);
+      return;
+    }
+
+    // Persist to database for real database drivers
+    assignOrderMutation.mutate(
+      { orderId: order.id, driverId },
+      {
+        onSuccess: () => {
+          toast.success(`Order assigned to ${driver?.name || 'driver'}`);
+        },
+        onError: () => {
+          toast.error('Failed to assign driver');
+        }
+      }
+    );
+  };
+
+  const assignedDriver = drivers.find(d => d.id === order.assignedDriverId);
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -75,6 +114,42 @@ export function OrderDetailSheet({ order, open, onOpenChange }: OrderDetailSheet
           </TabsList>
 
           <TabsContent value="details" className="mt-4 space-y-4">
+            {/* Assign Driver */}
+            {order.stage !== "completed" && order.stage !== "pickup_store" && (
+              <div className="p-3 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="flex items-center gap-2 mb-2">
+                  <Truck className="w-4 h-4 text-primary" />
+                  <span className="text-sm font-medium">Assign Driver</span>
+                </div>
+                <Select
+                  value={order.assignedDriverId || ""}
+                  onValueChange={handleDriverAssign}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select a driver..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {drivers.filter(d => d.isActive).map((driver) => (
+                      <SelectItem key={driver.id} value={driver.id}>
+                        <div className="flex items-center gap-2">
+                          <span>{driver.name}</span>
+                          {driver.truckNumber && (
+                            <span className="text-xs text-muted-foreground">({driver.truckNumber})</span>
+                          )}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {assignedDriver && (
+                  <p className="text-xs text-muted-foreground mt-2">
+                    Currently assigned to: <span className="font-medium text-foreground">{assignedDriver.name}</span>
+                    {assignedDriver.truckNumber && <span> • {assignedDriver.truckNumber}</span>}
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Status */}
             <div className="p-3 bg-muted/50 rounded-lg">
               <div className="flex items-center gap-2 mb-2">
@@ -162,3 +237,4 @@ export function OrderDetailSheet({ order, open, onOpenChange }: OrderDetailSheet
     </Sheet>
   );
 }
+

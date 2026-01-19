@@ -1,8 +1,8 @@
-export type OrderStage = 
-  | "picking" 
-  | "unassigned_driver" 
-  | "assigned_driver" 
-  | "pickup_store" 
+export type OrderStage =
+  | "picking"
+  | "unassigned_driver"
+  | "assigned_driver"
+  | "pickup_store"
   | "completed";
 
 export type OrderType = "DODD" | "JOBBER" | "HOTSHOT" | "PICKUP";
@@ -47,12 +47,19 @@ export interface Order {
   // New fields
   orderDocumentUrl: string | null; // Image/PDF of the order for driver reference
   presellNumber: string | null; // PRE SELL number for JOBBER orders only
+
+  // Computed lifecycle fields
+  pickingStatus: "not_picked" | "picked";
+  deliveryStatus: "pending" | "delivered" | "archived";
+  driverVisibility: "visible" | "hidden";
+  completedAt: Date | null;
 }
 
 export interface Driver {
   id: string;
   name: string;
   phone: string;
+  truckNumber: string;
   vehicleType: "truck" | "van" | "hotshot";
   isActive: boolean;
 }

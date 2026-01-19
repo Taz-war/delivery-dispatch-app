@@ -29,6 +29,10 @@ const transformOrder = (dbOrder: any): Order => ({
   pickingColumn: dbOrder.picking_column as PickingColumn,
   orderDocumentUrl: dbOrder.order_document_url,
   presellNumber: dbOrder.presell_number,
+  pickingStatus: dbOrder.picking_column === "Picked" ? "picked" : "not_picked",
+  deliveryStatus: dbOrder.stage === "completed" ? "delivered" : "pending",
+  driverVisibility: dbOrder.stage === "completed" ? "hidden" : "visible",
+  completedAt: dbOrder.stage === "completed" ? new Date(dbOrder.updated_at) : null,
 });
 
 // Transform Supabase driver to frontend Driver type
@@ -36,6 +40,7 @@ const transformDriver = (dbDriver: any): Driver => ({
   id: dbDriver.id,
   name: dbDriver.name,
   phone: dbDriver.phone || "",
+  truckNumber: dbDriver.truck_number || "",
   vehicleType: dbDriver.vehicle_type as "truck" | "van" | "hotshot",
   isActive: dbDriver.is_active,
 });
@@ -77,7 +82,7 @@ export const useCreateOrder = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (order: Omit<Order, "id" | "createdAt">) => {
+    mutationFn: async (order: Omit<Order, "id" | "createdAt" | "pickingStatus" | "deliveryStatus" | "driverVisibility" | "completedAt">) => {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
@@ -178,8 +183,8 @@ export const useMoveOrderToColumn = () => {
 
   return useMutation({
     mutationFn: async ({ orderId, newColumn }: { orderId: string; newColumn: PickingColumn }) => {
-      const updates: TablesUpdate<"orders"> = { 
-        picking_column: newColumn as TablesUpdate<"orders">["picking_column"] 
+      const updates: TablesUpdate<"orders"> = {
+        picking_column: newColumn as TablesUpdate<"orders">["picking_column"]
       };
 
       // Update assignedDay based on column

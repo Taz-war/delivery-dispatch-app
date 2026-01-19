@@ -1,3 +1,5 @@
+'use client';
+
 import { useEffect } from "react";
 import { useOrders, useDrivers } from "@/hooks/useOrders";
 import { useOrderStore } from "@/store/orderStore";
@@ -19,7 +21,8 @@ export function DataProvider({ children }: DataProviderProps) {
   }, [orders, setOrders]);
 
   useEffect(() => {
-    if (drivers) {
+    // Only override default drivers if database has drivers
+    if (drivers && drivers.length > 0) {
       setDrivers(drivers);
     }
   }, [drivers, setDrivers]);

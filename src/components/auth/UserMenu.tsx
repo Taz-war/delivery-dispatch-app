@@ -1,4 +1,6 @@
-import { useNavigate } from "react-router-dom";
+'use client';
+
+import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +16,7 @@ import { LogOut, User } from "lucide-react";
 import { toast } from "sonner";
 
 export function UserMenu() {
-  const navigate = useNavigate();
+  const router = useRouter();
   const { user, signOut } = useAuth();
 
   const handleSignOut = async () => {
@@ -24,7 +26,7 @@ export function UserMenu() {
       return;
     }
     toast.success("Signed out successfully");
-    navigate("/auth");
+    router.push("/auth");
   };
 
   const displayName = user?.user_metadata?.display_name || user?.email?.split("@")[0] || "User";

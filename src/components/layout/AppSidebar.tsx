@@ -1,4 +1,7 @@
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
+'use client';
+
+import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -15,6 +18,7 @@ import {
   ChevronRight,
   LogOut,
   ListOrdered,
+  UserCircle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
@@ -42,6 +46,7 @@ const navigation: NavGroup[] = [
       { title: "Order Entry", href: "/order-entry", icon: ClipboardList },
       { title: "Picking Board", href: "/picking", icon: Package },
       { title: "Dispatch Control", href: "/dispatch", icon: Truck },
+      { title: "Driver Portal", href: "/driver-portal", icon: UserCircle },
       { title: "Pickup Board", href: "/pickup", icon: Store },
       { title: "Live Map", href: "/map", icon: Map },
     ],
@@ -65,8 +70,8 @@ const navigation: NavGroup[] = [
 ];
 
 export function AppSidebar() {
-  const location = useLocation();
-  const navigate = useNavigate();
+  const pathname = usePathname();
+  const router = useRouter();
   const [collapsed, setCollapsed] = useState(false);
   const { user, signOut } = useAuth();
 
@@ -85,7 +90,7 @@ export function AppSidebar() {
       return;
     }
     toast.success("Signed out successfully");
-    navigate("/auth");
+    router.push("/auth");
   };
 
   return (
@@ -123,11 +128,11 @@ export function AppSidebar() {
             )}
             <ul className="space-y-1 px-2">
               {group.items.map((item) => {
-                const isActive = location.pathname === item.href;
+                const isActive = pathname === item.href;
                 return (
                   <li key={item.href}>
-                    <NavLink
-                      to={item.href}
+                    <Link
+                      href={item.href}
                       className={cn(
                         "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
                         isActive
@@ -139,7 +144,7 @@ export function AppSidebar() {
                       {!collapsed && (
                         <span className="animate-fade-in truncate">{item.title}</span>
                       )}
-                    </NavLink>
+                    </Link>
                   </li>
                 );
               })}

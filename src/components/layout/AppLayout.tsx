@@ -1,9 +1,14 @@
+'use client';
+
 import { AppSidebar } from "./AppSidebar";
 import { MobileHeader } from "./MobileHeader";
 import { MobileBottomNav } from "./MobileBottomNav";
-import { Outlet } from "react-router-dom";
 
-export function AppLayout() {
+interface AppLayoutProps {
+  children: React.ReactNode;
+}
+
+export function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="flex h-screen w-full bg-background overflow-hidden">
       {/* Desktop Sidebar - hidden on mobile */}
@@ -17,7 +22,7 @@ export function AppLayout() {
 
         {/* Main Content */}
         <main className="flex-1 overflow-auto pb-16 md:pb-0">
-          <Outlet />
+          {children}
         </main>
 
         {/* Mobile Bottom Nav - visible only on mobile */}

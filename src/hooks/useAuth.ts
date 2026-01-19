@@ -1,3 +1,5 @@
+'use client';
+
 import { useState, useEffect, useCallback } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
@@ -28,8 +30,8 @@ export function useAuth() {
   }, []);
 
   const signUp = useCallback(async (email: string, password: string, displayName?: string) => {
-    const redirectUrl = `${window.location.origin}/`;
-    
+    const redirectUrl = typeof window !== 'undefined' ? `${window.location.origin}/` : '/';
+
     const { data, error } = await supabase.auth.signUp({
       email,
       password,

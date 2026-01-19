@@ -1,7 +1,10 @@
+'use client';
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { Menu, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   ClipboardList,
@@ -58,12 +61,12 @@ const navigation: NavGroup[] = [
 ];
 
 export function MobileHeader() {
-  const location = useLocation();
+  const pathname = usePathname();
 
   // Get current page title
   const currentPage = navigation
     .flatMap((g) => g.items)
-    .find((item) => item.href === location.pathname);
+    .find((item) => item.href === pathname);
 
   return (
     <header className="sticky top-0 z-40 flex items-center justify-between h-14 px-4 bg-card border-b border-border md:hidden">
@@ -98,11 +101,11 @@ export function MobileHeader() {
                 </h2>
                 <ul className="space-y-1 px-2">
                   {group.items.map((item) => {
-                    const isActive = location.pathname === item.href;
+                    const isActive = pathname === item.href;
                     return (
                       <li key={item.href}>
-                        <NavLink
-                          to={item.href}
+                        <Link
+                          href={item.href}
                           className={cn(
                             "flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-all duration-200",
                             isActive
@@ -112,7 +115,7 @@ export function MobileHeader() {
                         >
                           <item.icon className="w-5 h-5 flex-shrink-0" />
                           <span className="truncate">{item.title}</span>
-                        </NavLink>
+                        </Link>
                       </li>
                     );
                   })}

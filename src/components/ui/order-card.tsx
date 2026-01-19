@@ -29,10 +29,30 @@ export function OrderCard({ order, isDragging, onClick }: OrderCardProps) {
       {/* Header */}
       <div className="flex items-start justify-between gap-2 mb-2">
         <div className="flex-1 min-w-0">
-          <h4 className="font-semibold text-sm text-foreground truncate">
-            {order.customer.name}
-          </h4>
-          <p className="text-xs text-muted-foreground">#{order.customer.id}</p>
+          <div className="flex items-center gap-2">
+            <h4 className="font-semibold text-sm text-foreground truncate">
+              {order.customer.name}
+            </h4>
+            {/* Driver Board Indicators */}
+            {order.stage !== 'completed' && (
+              <>
+                <div className="w-4 h-4 rounded-full bg-green-500/20 flex items-center justify-center p-0.5" title="Scheduled / Active">
+                  <svg viewBox="0 0 24 24" fill="none" className="w-3 h-3 text-green-600" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                </div>
+              </>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 mt-0.5">
+            <p className="text-xs text-muted-foreground">#{order.customer.id}</p>
+            {order.pickingStatus === "picked" && order.stage !== 'completed' && (
+              <span className="px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wider bg-green-500 text-white rounded shadow-sm animate-in fade-in zoom-in duration-300">
+                Picked
+              </span>
+            )}
+          </div>
         </div>
         <span
           className={cn(

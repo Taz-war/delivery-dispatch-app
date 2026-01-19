@@ -1,4 +1,6 @@
-import { Navigate } from "react-router-dom";
+'use client';
+
+import { redirect } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 
@@ -21,7 +23,7 @@ export function ProtectedRoute({ children }: ProtectedRouteProps) {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/auth" replace />;
+    redirect("/auth");
   }
 
   return <>{children}</>;
