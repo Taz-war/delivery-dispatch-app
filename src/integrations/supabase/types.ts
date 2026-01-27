@@ -19,6 +19,7 @@ export type Database = {
           address: string | null
           created_at: string
           customer_code: string
+          email: string | null
           id: string
           name: string
           phone: string | null
@@ -29,6 +30,7 @@ export type Database = {
           address?: string | null
           created_at?: string
           customer_code: string
+          email?: string | null
           id?: string
           name: string
           phone?: string | null
@@ -39,6 +41,7 @@ export type Database = {
           address?: string | null
           created_at?: string
           customer_code?: string
+          email?: string | null
           id?: string
           name?: string
           phone?: string | null
@@ -54,6 +57,7 @@ export type Database = {
           is_active: boolean
           name: string
           phone: string | null
+          truck_number: string | null
           updated_at: string
           user_id: string | null
           vehicle_type: Database["public"]["Enums"]["vehicle_type"]
@@ -64,6 +68,7 @@ export type Database = {
           is_active?: boolean
           name: string
           phone?: string | null
+          truck_number?: string | null
           updated_at?: string
           user_id?: string | null
           vehicle_type?: Database["public"]["Enums"]["vehicle_type"]
@@ -74,6 +79,7 @@ export type Database = {
           is_active?: boolean
           name?: string
           phone?: string | null
+          truck_number?: string | null
           updated_at?: string
           user_id?: string | null
           vehicle_type?: Database["public"]["Enums"]["vehicle_type"]
@@ -133,8 +139,11 @@ export type Database = {
           customer_lng: number | null
           customer_name: string
           customer_phone: string | null
+          fulfillment_type: string | null
           id: string
           invoice_photo_url: string | null
+          is_ready: boolean | null
+
           items: Json
           order_document_url: string | null
           order_number: string
@@ -158,8 +167,10 @@ export type Database = {
           customer_lng?: number | null
           customer_name: string
           customer_phone?: string | null
+          fulfillment_type?: string | null
           id?: string
           invoice_photo_url?: string | null
+          is_ready?: boolean | null
           items?: Json
           order_document_url?: string | null
           order_number: string
@@ -183,8 +194,10 @@ export type Database = {
           customer_lng?: number | null
           customer_name?: string
           customer_phone?: string | null
+          fulfillment_type?: string | null
           id?: string
           invoice_photo_url?: string | null
+          is_ready?: boolean | null
           items?: Json
           order_document_url?: string | null
           order_number?: string
@@ -244,20 +257,20 @@ export type Database = {
     Enums: {
       assigned_day: "Mon" | "Tue" | "Wed" | "Thu" | "Fri"
       order_stage:
-        | "picking"
-        | "unassigned_driver"
-        | "assigned_driver"
-        | "pickup_store"
-        | "completed"
-      order_type: "DODD" | "JOBBER" | "HOTSHOT" | "PICKUP"
+      | "picking"
+      | "unassigned_driver"
+      | "assigned_driver"
+      | "pickup_store"
+      | "completed"
+      order_type: "DODD" | "JOBBER" | "HOTSHOT" | "PICKUP" | "RESTOCK"
       picking_column:
-        | "Unassigned"
-        | "Mon"
-        | "Tue"
-        | "Wed"
-        | "Thu"
-        | "Fri"
-        | "Picked"
+      | "Unassigned"
+      | "Mon"
+      | "Tue"
+      | "Wed"
+      | "Thu"
+      | "Fri"
+      | "Picked"
       vehicle_type: "truck" | "van" | "hotshot"
     }
     CompositeTypes: {
@@ -272,116 +285,116 @@ type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+  ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
+    DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
-    ? R
-    : never
+  ? R
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])
-    ? (DefaultSchema["Tables"] &
-        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
-        Row: infer R
-      }
-      ? R
-      : never
-    : never
+    DefaultSchema["Views"])
+  ? (DefaultSchema["Tables"] &
+    DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
+      Row: infer R
+    }
+  ? R
+  : never
+  : never
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Tables"]
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Insert: infer I
-    }
-    ? I
-    : never
+    Insert: infer I
+  }
+  ? I
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Insert: infer I
-      }
-      ? I
-      : never
-    : never
+  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+    Insert: infer I
+  }
+  ? I
+  : never
+  : never
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema["Tables"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Tables"]
+  | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
+  : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
-      Update: infer U
-    }
-    ? U
-    : never
+    Update: infer U
+  }
+  ? U
+  : never
   : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
-    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
-        Update: infer U
-      }
-      ? U
-      : never
-    : never
+  ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
+    Update: infer U
+  }
+  ? U
+  : never
+  : never
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema["Enums"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["Enums"]
+  | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
+  : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
   : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
-    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
-    : never
+  ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
+  : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema["CompositeTypes"]
-    | { schema: keyof DatabaseWithoutInternals },
+  | keyof DefaultSchema["CompositeTypes"]
+  | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+  ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
+  : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
   ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
   : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
-    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
-    : never
+  ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
+  : never
 
 export const Constants = {
   public: {
@@ -394,7 +407,7 @@ export const Constants = {
         "pickup_store",
         "completed",
       ],
-      order_type: ["DODD", "JOBBER", "HOTSHOT", "PICKUP"],
+      order_type: ["DODD", "JOBBER", "HOTSHOT", "PICKUP", "RESTOCK"],
       picking_column: [
         "Unassigned",
         "Mon",

@@ -5,11 +5,13 @@ export type OrderStage =
   | "pickup_store"
   | "completed";
 
-export type OrderType = "DODD" | "JOBBER" | "HOTSHOT" | "PICKUP";
+export type OrderType = "DODD" | "JOBBER" | "HOTSHOT" | "PICKUP" | "RESTOCK";
 
 export type AssignedDay = "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | null;
 
 export type PickingColumn = "Unassigned" | "Mon" | "Tue" | "Wed" | "Thu" | "Fri" | "Picked";
+
+export type FulfillmentType = "Pickup" | "Delivery" | "Back Order";
 
 export interface Coordinates {
   lat: number;
@@ -45,6 +47,8 @@ export interface Order {
   createdAt: Date;
   pickingColumn: PickingColumn;
   // New fields
+  fulfillmentType: FulfillmentType;
+  isReady: boolean;
   orderDocumentUrl: string | null; // Image/PDF of the order for driver reference
   presellNumber: string | null; // PRE SELL number for JOBBER orders only
 

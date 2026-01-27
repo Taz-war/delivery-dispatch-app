@@ -1,20 +1,10 @@
 import { useState, useEffect, useRef } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import { Search, Plus, Check } from "lucide-react";
+import { Search, Check } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { toast } from "@/hooks/use-toast";
-
-interface Customer {
-  id: string;
-  customer_code: string;
-  name: string;
-  address: string | null;
-  phone: string | null;
-}
+import { useCustomers, Customer } from "@/hooks/useCustomers";
 
 interface CustomerSearchProps {
   value: {
@@ -32,24 +22,26 @@ interface CustomerSearchProps {
 }
 
 export function CustomerSearch({ value, onChange }: CustomerSearchProps) {
-  const [searchQuery, setSearchQuery] = useState("");
+  const [searchQuery, setSearchQuery] = useState(value.customerName || "");
   const [isOpen, setIsOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const queryClient = useQueryClient();
 
-  // Fetch customers from database
-  const { data: customers = [] } = useQuery({
-    queryKey: ["customers-search"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("customers")
-        .select("*")
-        .order("name");
-      if (error) throw error;
-      return data as Customer[];
-    },
-  });
+  // Sync internal search query if external value changes (e.g. cleared by parent)
+  useEffect(() => {
+    if (value.customerName !== searchQuery) {
+      // Only update if it's significantly different or cleared to avoid typing loops
+      // But simplistic approach: if value.customerName is empty, clear search
+      if (!value.customerName) {
+        setSearchQuery("");
+        setSelectedCustomer(null);
+      }
+    }
+  }, [value.customerName]);
+
+
+  // Fetch customers using the hook
+  const { data: customers = [] } = useCustomers();
 
   // Filter customers based on search query
   const filteredCustomers = customers.filter(
@@ -57,43 +49,6 @@ export function CustomerSearch({ value, onChange }: CustomerSearchProps) {
       customer.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       customer.customer_code.toLowerCase().includes(searchQuery.toLowerCase())
   );
-
-  // Check if the search query matches an existing customer exactly
-  const isNewCustomer =
-    searchQuery.trim() !== "" &&
-    !customers.some(
-      (c) =>
-        c.name.toLowerCase() === searchQuery.toLowerCase() ||
-        c.customer_code.toLowerCase() === searchQuery.toLowerCase()
-    );
-
-  // Create new customer mutation
-  const createCustomer = useMutation({
-    mutationFn: async (newCustomer: Omit<Customer, "id">) => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error("Not authenticated");
-      
-      const { data, error } = await supabase
-        .from("customers")
-        .insert({
-          ...newCustomer,
-          user_id: user.id,
-        })
-        .select()
-        .single();
-      if (error) throw error;
-      return data as Customer;
-    },
-    onSuccess: (data) => {
-      queryClient.invalidateQueries({ queryKey: ["customers-search"] });
-      queryClient.invalidateQueries({ queryKey: ["customers"] });
-      setSelectedCustomer(data);
-      toast({
-        title: "Customer Created",
-        description: `${data.name} has been added to your customers.`,
-      });
-    },
-  });
 
   // Handle clicking outside to close dropdown
   useEffect(() => {
@@ -119,30 +74,6 @@ export function CustomerSearch({ value, onChange }: CustomerSearchProps) {
     setIsOpen(false);
   };
 
-  // Handle creating new customer
-  const handleCreateNew = () => {
-    // Generate a customer code from the name
-    const code = searchQuery
-      .toUpperCase()
-      .replace(/[^A-Z0-9]/g, "")
-      .slice(0, 4) + "-" + Math.floor(1000 + Math.random() * 9000);
-
-    createCustomer.mutate({
-      name: searchQuery,
-      customer_code: code,
-      address: value.address || null,
-      phone: value.phone || null,
-    });
-
-    onChange({
-      customerName: searchQuery,
-      customerId: code,
-      address: value.address,
-      phone: value.phone,
-    });
-    setIsOpen(false);
-  };
-
   // Clear selection
   const handleClear = () => {
     setSelectedCustomer(null);
@@ -164,7 +95,7 @@ export function CustomerSearch({ value, onChange }: CustomerSearchProps) {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             id="customerSearch"
-            placeholder="Search or enter new customer..."
+            placeholder="Search customer..."
             value={searchQuery}
             onChange={(e) => {
               setSearchQuery(e.target.value);
@@ -183,7 +114,6 @@ export function CustomerSearch({ value, onChange }: CustomerSearchProps) {
             }}
             onFocus={() => setIsOpen(true)}
             className="pl-9"
-            required
           />
           {selectedCustomer && (
             <Button
@@ -225,20 +155,10 @@ export function CustomerSearch({ value, onChange }: CustomerSearchProps) {
                     )}
                   </button>
                 ))
-              ) : null}
-
-              {/* Create new option */}
-              {isNewCustomer && (
-                <button
-                  type="button"
-                  onClick={handleCreateNew}
-                  className="w-full px-3 py-2 text-left hover:bg-accent/10 border-t flex items-center gap-2 text-accent"
-                >
-                  <Plus className="h-4 w-4" />
-                  <span className="text-sm font-medium">
-                    Create "{searchQuery}" as new customer
-                  </span>
-                </button>
+              ) : (
+                <div className="px-3 py-2 text-sm text-muted-foreground">
+                  No customers found.
+                </div>
               )}
             </div>
           </div>
@@ -255,7 +175,6 @@ export function CustomerSearch({ value, onChange }: CustomerSearchProps) {
           onChange={(e) => onChange({ ...value, customerId: e.target.value })}
           readOnly={!!selectedCustomer}
           className={cn(selectedCustomer && "bg-muted")}
-          required
         />
       </div>
 
@@ -267,7 +186,6 @@ export function CustomerSearch({ value, onChange }: CustomerSearchProps) {
           placeholder="Street address, city, state, zip"
           value={value.address}
           onChange={(e) => onChange({ ...value, address: e.target.value })}
-          required
         />
       </div>
 

@@ -29,6 +29,8 @@ const transformOrder = (dbOrder: any): Order => ({
   pickingColumn: dbOrder.picking_column as PickingColumn,
   orderDocumentUrl: dbOrder.order_document_url,
   presellNumber: dbOrder.presell_number,
+  fulfillmentType: (dbOrder.fulfillment_type as any) || "Delivery",
+  isReady: dbOrder.is_ready ?? true,
   pickingStatus: dbOrder.picking_column === "Picked" ? "picked" : "not_picked",
   deliveryStatus: dbOrder.stage === "completed" ? "delivered" : "pending",
   driverVisibility: dbOrder.stage === "completed" ? "hidden" : "visible",
@@ -103,13 +105,15 @@ export const useCreateOrder = () => {
         scheduled_date: order.scheduledDate?.toISOString().split("T")[0] || null,
         assigned_day: order.assignedDay as TablesInsert<"orders">["assigned_day"],
         rsm: order.rsm,
-        assigned_driver_id: order.assignedDriverId,
+        assigned_driver_id: order.assignedDriverId && !order.assignedDriverId.startsWith('driver-') ? order.assignedDriverId : null,
         order_type: order.orderType as TablesInsert<"orders">["order_type"],
         invoice_photo_url: order.invoicePhotoUrl,
         comments: order.comments,
         picking_column: order.pickingColumn as TablesInsert<"orders">["picking_column"],
         order_document_url: order.orderDocumentUrl,
         presell_number: order.presellNumber,
+        fulfillment_type: order.fulfillmentType,
+        is_ready: order.isReady,
         user_id: user.id,
       };
 
@@ -160,6 +164,8 @@ export const useUpdateOrder = () => {
       if (updates.pickingColumn !== undefined) dbUpdates.picking_column = updates.pickingColumn as TablesUpdate<"orders">["picking_column"];
       if (updates.orderDocumentUrl !== undefined) dbUpdates.order_document_url = updates.orderDocumentUrl;
       if (updates.presellNumber !== undefined) dbUpdates.presell_number = updates.presellNumber;
+      if (updates.fulfillmentType !== undefined) dbUpdates.fulfillment_type = updates.fulfillmentType;
+      if (updates.isReady !== undefined) dbUpdates.is_ready = updates.isReady;
 
       const { data, error } = await supabase
         .from("orders")
