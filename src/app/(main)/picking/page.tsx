@@ -62,9 +62,9 @@ export default function PickingBoard() {
             {/* Header */}
             <header className="flex items-center justify-between px-6 py-4 border-b border-border bg-card">
                 <div>
-                    <h1 className="text-2xl font-bold text-foreground">Picking Board</h1>
+                    <h1 className="text-2xl font-bold text-foreground">Processing Board</h1>
                     <p className="text-sm text-muted-foreground mt-0.5">
-                        Schedule and track warehouse picking
+                        Schedule and track warehouse processing
                     </p>
                 </div>
 

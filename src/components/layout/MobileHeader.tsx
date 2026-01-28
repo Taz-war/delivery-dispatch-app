@@ -37,7 +37,7 @@ const navigation: NavGroup[] = [
     items: [
       { title: "Dashboard", href: "/", icon: LayoutDashboard },
       { title: "Order Entry", href: "/order-entry", icon: ClipboardList },
-      { title: "Picking Board", href: "/picking", icon: Package },
+      { title: "Processing Board", href: "/picking", icon: Package },
       { title: "Dispatch Control", href: "/dispatch", icon: Truck },
       { title: "Pickup Board", href: "/pickup", icon: Store },
       { title: "Live Map", href: "/map", icon: Map },
