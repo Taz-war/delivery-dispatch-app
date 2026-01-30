@@ -24,10 +24,16 @@ export default function DispatchControl() {
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [sheetOpen, setSheetOpen] = useState(false);
 
-    // Orders ready to be assigned to drivers (non-pickup, unassigned)
-    const unassignedOrders = orders.filter(
-        (o) => o.stage === "unassigned_driver" && o.orderType !== "PICKUP"
+    // All unassigned orders for display (non-pickup)
+    const allUnassignedOrders = orders.filter(
+        (o) => (o.stage === "unassigned_driver" || o.stage === "picking") && o.orderType !== "PICKUP"
     );
+
+    // Separate ready vs pending processing orders
+    // Ready = isReady is true or undefined (legacy orders), AND not in picking stage
+    // Pending = isReady is explicitly false, OR in picking stage
+    const readyOrders = allUnassignedOrders.filter(o => o.isReady !== false && o.stage !== "picking");
+    const pendingProcessingOrders = allUnassignedOrders.filter(o => o.isReady === false || o.stage === "picking");
 
     // Completed orders (non-pickup) - Visible for 7 days only
     const completedOrders = orders.filter(
@@ -39,6 +45,12 @@ export default function DispatchControl() {
     const handleDragEnd = (result: DropResult) => {
         const { destination, draggableId } = result;
         if (!destination) return;
+
+        // Check if the order being dragged is ready (prevent dragging non-ready orders)
+        const draggedOrder = orders.find(o => o.id === draggableId);
+        if (draggedOrder && draggedOrder.isReady === false) {
+            return; // Don't allow dragging non-ready orders
+        }
 
         if (view === "assign-driver") {
             const driverId = destination.droppableId;
@@ -135,7 +147,7 @@ export default function DispatchControl() {
                                 <div className="p-3 md:p-4 border-b border-border">
                                     <h2 className="font-semibold text-foreground text-sm md:text-base">Unassigned Orders</h2>
                                     <p className="text-xs text-muted-foreground mt-1">
-                                        {unassignedOrders.length} orders ready for dispatch
+                                        {readyOrders.length} ready • {pendingProcessingOrders.length} pending
                                     </p>
                                 </div>
                                 <Droppable droppableId="unassigned">
@@ -149,7 +161,8 @@ export default function DispatchControl() {
                                             )}
                                         >
                                             <div className="space-y-3">
-                                                {unassignedOrders.map((order, index) => (
+                                                {/* Ready orders - draggable */}
+                                                {readyOrders.map((order, index) => (
                                                     <Draggable key={order.id} draggableId={order.id} index={index}>
                                                         {(provided, snapshot) => (
                                                             <div
@@ -166,9 +179,41 @@ export default function DispatchControl() {
                                                         )}
                                                     </Draggable>
                                                 ))}
+
+                                                {/* Pending Processing orders - show on card */}
+                                                {pendingProcessingOrders.length > 0 && (
+                                                    <>
+                                                        <div className="flex items-center gap-2 py-2">
+                                                            <div className="flex-1 h-px bg-amber-400/50" />
+                                                            <span className="text-[10px] uppercase tracking-wider text-amber-600 font-medium">
+                                                                ⏳ Pending Processing ({pendingProcessingOrders.length})
+                                                            </span>
+                                                            <div className="flex-1 h-px bg-amber-400/50" />
+                                                        </div>
+                                                        {pendingProcessingOrders.map((order) => (
+                                                            <div
+                                                                key={order.id}
+                                                                className="relative pointer-events-none select-none mb-3"
+                                                            >
+                                                                {/* Order card with processing badge */}
+                                                                <div className="opacity-60">
+                                                                    <OrderCard
+                                                                        order={order}
+                                                                        isDragging={false}
+                                                                    />
+                                                                </div>
+                                                                {/* Not Processed badge on the card */}
+                                                                <div className="absolute top-2 right-2 z-10 flex items-center gap-1 px-2 py-1 bg-amber-500 text-white text-[10px] font-bold rounded shadow-md">
+                                                                    <span>⏳</span>
+                                                                    <span>NOT PROCESSED</span>
+                                                                </div>
+                                                            </div>
+                                                        ))}
+                                                    </>
+                                                )}
                                             </div>
                                             {provided.placeholder}
-                                            {unassignedOrders.length === 0 && (
+                                            {allUnassignedOrders.length === 0 && (
                                                 <div className="text-center text-xs md:text-sm text-muted-foreground py-6 md:py-8">
                                                     No orders awaiting dispatch
                                                 </div>

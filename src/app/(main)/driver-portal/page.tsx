@@ -35,10 +35,11 @@ export default function DriverPortal() {
 
     const selectedDriver = drivers.find(d => d.id === selectedDriverId);
 
-    // Get orders assigned to the selected driver
+    // Get orders assigned to the selected driver (only ready orders)
     const driverOrders = orders.filter(o =>
         o.assignedDriverId === selectedDriverId &&
-        o.stage !== "completed"
+        o.stage !== "completed" &&
+        o.isReady !== false // Hide orders not yet processed
     );
 
     // Get completed orders for the driver (last 7 days)

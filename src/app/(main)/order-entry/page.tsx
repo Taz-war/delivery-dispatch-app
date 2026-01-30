@@ -215,8 +215,10 @@ export default function OrderEntry() {
             // Route based on destination
             if (formData.fulfillmentType === "Pickup" && formData.isReady) {
                 router.push("/pickup");
+            } else if (!formData.isReady) {
+                router.push("/picking"); // Go to Processing Board for non-ready orders
             } else {
-                router.push("/dispatch"); // Default to dispatch even for processing for now
+                router.push("/dispatch");
             }
         } catch (error) {
             console.error("Error creating order:", error);
