@@ -24,16 +24,21 @@ export default function DispatchControl() {
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
     const [sheetOpen, setSheetOpen] = useState(false);
 
-    // All unassigned orders for display (non-pickup)
+    // All unassigned orders for display (non-pickup) - PLUS orders that are not ready yet
     const allUnassignedOrders = orders.filter(
-        (o) => (o.stage === "unassigned_driver" || o.stage === "picking") && o.orderType !== "PICKUP"
+        (o) => (
+            (o.stage === "unassigned_driver" || o.stage === "picking" || o.isReady === false) &&
+            o.orderType !== "PICKUP" &&
+            o.stage !== "completed"
+        )
     );
 
     // Separate ready vs pending processing orders
-    // Ready = isReady is true or undefined (legacy orders), AND not in picking stage
-    // Pending = isReady is explicitly false, OR in picking stage
-    const readyOrders = allUnassignedOrders.filter(o => o.isReady !== false && o.stage !== "picking");
-    const pendingProcessingOrders = allUnassignedOrders.filter(o => o.isReady === false || o.stage === "picking");
+    // Ready = isReady is true AND stage is unassigned_driver (ready for dispatch)
+    // Pending = isReady is explicitly false (still on Processing Board)
+    const readyOrders = allUnassignedOrders.filter(o => o.isReady !== false && o.stage === "unassigned_driver");
+    const pendingProcessingOrders = allUnassignedOrders.filter(o => o.isReady === false);
+
 
     // Completed orders (non-pickup) - Visible for 7 days only
     const completedOrders = orders.filter(
@@ -186,7 +191,7 @@ export default function DispatchControl() {
                                                         <div className="flex items-center gap-2 py-2">
                                                             <div className="flex-1 h-px bg-amber-400/50" />
                                                             <span className="text-[10px] uppercase tracking-wider text-amber-600 font-medium">
-                                                                ⏳ Pending Processing ({pendingProcessingOrders.length})
+                                                                🔄 In Process ({pendingProcessingOrders.length})
                                                             </span>
                                                             <div className="flex-1 h-px bg-amber-400/50" />
                                                         </div>
@@ -195,17 +200,21 @@ export default function DispatchControl() {
                                                                 key={order.id}
                                                                 className="relative pointer-events-none select-none mb-3"
                                                             >
-                                                                {/* Order card with processing badge */}
-                                                                <div className="opacity-60">
+                                                                {/* Order card - slightly faded */}
+                                                                <div className="opacity-70 grayscale-[30%]">
                                                                     <OrderCard
                                                                         order={order}
                                                                         isDragging={false}
                                                                     />
                                                                 </div>
-                                                                {/* Not Processed badge on the card */}
-                                                                <div className="absolute top-2 right-2 z-10 flex items-center gap-1 px-2 py-1 bg-amber-500 text-white text-[10px] font-bold rounded shadow-md">
-                                                                    <span>⏳</span>
-                                                                    <span>NOT PROCESSED</span>
+                                                                {/* IN PROCESS badge on the card */}
+                                                                <div className="absolute top-2 right-2 z-10 flex items-center gap-1.5 px-2.5 py-1.5 bg-gradient-to-r from-orange-500 to-amber-500 text-white text-[10px] font-bold rounded-md shadow-lg border border-orange-600/20">
+                                                                    <span className="animate-spin-slow">🔄</span>
+                                                                    <span>IN PROCESS</span>
+                                                                </div>
+                                                                {/* Bottom info bar */}
+                                                                <div className="absolute bottom-0 left-0 right-0 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 text-[9px] text-center py-1 rounded-b-lg border-t border-amber-200 dark:border-amber-700">
+                                                                    Pending from Processing Board
                                                                 </div>
                                                             </div>
                                                         ))}

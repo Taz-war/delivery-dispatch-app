@@ -246,22 +246,23 @@ export const useAssignOrderToDriver = () => {
   });
 };
 
-// Create a new driver
+// Create a new driver (globally shared - no user_id)
 export const useCreateDriver = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (driver: Omit<Driver, "id">) => {
-      // Get current user
+      // Get current user to verify authentication
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("User not authenticated");
 
       const insertData: TablesInsert<"drivers"> = {
         name: driver.name,
         phone: driver.phone,
+        truck_number: driver.truckNumber || null,
         vehicle_type: driver.vehicleType,
         is_active: driver.isActive,
-        user_id: user.id,
+        user_id: null, // Drivers are global, not user-specific
       };
 
       const { data, error } = await supabase
@@ -278,6 +279,7 @@ export const useCreateDriver = () => {
     },
   });
 };
+
 
 // Update a driver
 export const useUpdateDriver = () => {
